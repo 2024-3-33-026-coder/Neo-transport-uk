@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Clock, Sparkles } from 'lucide-react';
 import { Quote, ViewMode, BookingWizardState } from '../../types';
 import {
-  getPersistedQuotes,
+  getStoredQuotes,
+  fetchPersistedQuotes,
   deleteQuote,
   addQuote,
   getPersistedWizardDraft,
@@ -27,7 +28,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
   onNavigate,
 }) => {
   const [quotesList, setQuotesList] = useState<Quote[]>(() => {
-    return quotes && quotes.length > 0 ? quotes : getPersistedQuotes();
+    return quotes && quotes.length > 0 ? quotes : getStoredQuotes();
   });
 
   // Synchronize when prop changes
@@ -37,10 +38,19 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
     }
   }, [quotes]);
 
+  // Fetch persisted quotes from Supabase on load
+  useEffect(() => {
+    fetchPersistedQuotes().then((fetched) => {
+      if (fetched && fetched.length > 0) {
+        setQuotesList(fetched);
+      }
+    });
+  }, []);
+
   // Synchronize with portalStore events (cross-tab and admin changes)
   useEffect(() => {
     const handleSync = () => {
-      setQuotesList(getPersistedQuotes());
+      setQuotesList(getStoredQuotes());
     };
     window.addEventListener('neo_portal_sync', handleSync);
     return () => window.removeEventListener('neo_portal_sync', handleSync);
@@ -67,14 +77,13 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
     };
     persistWizardDraft(updatedDraft);
 
+    await deleteQuote(quote.id);
+    setQuotesList((prev) => prev.filter((q) => q.id !== quote.id && q.reference !== quote.reference));
+
     if (onAcceptQuote) {
       onAcceptQuote(quote);
-    } else {
-      await deleteQuote(quote.id);
-      setQuotesList((prev) => prev.filter((q) => q.id !== quote.id && q.reference !== quote.reference));
-      if (onNavigate) {
-        onNavigate('new-booking');
-      }
+    } else if (onNavigate) {
+      onNavigate('new-booking');
     }
   };
 
@@ -145,7 +154,7 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
 
       {/* Quote Cards Grid (Matching Screenshot 5) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {quotes.map((quote) => (
+        {quotesList.map((quote) => (
           <div
             key={quote.id}
             className={`p-6 rounded-2xl border flex flex-col justify-between transition-all ${cardBg}`}
@@ -193,14 +202,14 @@ export const QuotesView: React.FC<QuotesViewProps> = ({
             {/* Buttons: Accept & book / Discard (Matching Screenshot 5) */}
             <div className="flex items-center gap-3 pt-2">
               <button
-                onClick={() => onAcceptQuote(quote)}
-                className="flex-1 bg-[#3898EC] hover:bg-[#2b85d6] text-white py-2.5 px-4 rounded-full text-xs font-bold transition-all text-center"
+                onClick={() => handleAccept(quote)}
+                className="flex-1 bg-[#3898EC] hover:bg-[#2b85d6] text-white py-2.5 px-4 rounded-full text-xs font-bold transition-all text-center cursor-pointer"
               >
                 Accept & book
               </button>
               <button
-                onClick={() => onDiscardQuote(quote.id)}
-                className={`flex-1 py-2.5 px-4 rounded-full text-xs font-semibold border transition-all text-center ${
+                onClick={() => handleDiscard(quote.id)}
+                className={`flex-1 py-2.5 px-4 rounded-full text-xs font-semibold border transition-all text-center cursor-pointer ${
                   isDarkMode
                     ? 'border-[#1a2636] hover:bg-slate-800 text-slate-300'
                     : 'border-slate-300 hover:bg-slate-100 text-slate-700'

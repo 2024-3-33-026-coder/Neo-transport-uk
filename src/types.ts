@@ -93,3 +93,12 @@ export interface BookingWizardState {
   poNumber: string;
   notes: string;
 }
+
+export interface SupportTicket {
+  id: string;
+  company_id?: string;
+  topic: string;
+  message: string;
+  status: 'Open' | 'In Progress' | 'Resolved';
+  date: string;
+}

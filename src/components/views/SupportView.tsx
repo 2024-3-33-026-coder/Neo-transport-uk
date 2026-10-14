@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Phone,
   Mail,
@@ -9,12 +9,18 @@ import {
   Clock,
   ShieldAlert,
   ArrowRight,
+  Plus,
+  MessageSquare,
+  CheckCircle2,
 } from 'lucide-react';
 import { askDispatchCopilot } from '../../lib/geminiClient';
 import { CONTACT_CONFIG } from '../../lib/config';
+import { SupportTicket } from '../../types';
+import { getStoredTickets, getPersistedTickets, addSupportTicket } from '../../lib/portalStore';
 
 interface SupportViewProps {
   isDarkMode: boolean;
+  companyId?: string;
 }
 
 interface Message {
@@ -22,7 +28,7 @@ interface Message {
   content: string;
 }
 
-export const SupportView: React.FC<SupportViewProps> = ({ isDarkMode }) => {
+export const SupportView: React.FC<SupportViewProps> = ({ isDarkMode, companyId }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -33,7 +39,43 @@ export const SupportView: React.FC<SupportViewProps> = ({ isDarkMode }) => {
   const [inputQuestion, setInputQuestion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Support Tickets State
+  const [tickets, setTickets] = useState<SupportTicket[]>(() => getStoredTickets());
+  const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
+  const [ticketTopic, setTicketTopic] = useState('');
+  const [ticketMessage, setTicketMessage] = useState('');
+  const [isSubmittingTicket, setIsSubmittingTicket] = useState(false);
+
+  useEffect(() => {
+    getPersistedTickets().then((fetched) => {
+      if (fetched && fetched.length > 0) {
+        setTickets(fetched);
+      }
+    });
+  }, []);
+
   const cardBg = isDarkMode ? 'bg-[#0b121c] border-[#172334]' : 'bg-white border-slate-200';
+
+  const handleCreateTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ticketTopic.trim() || !ticketMessage.trim()) return;
+
+    setIsSubmittingTicket(true);
+    try {
+      const updated = await addSupportTicket(
+        { topic: ticketTopic.trim(), message: ticketMessage.trim() },
+        companyId
+      );
+      setTickets(updated);
+      setIsNewTicketOpen(false);
+      setTicketTopic('');
+      setTicketMessage('');
+    } catch (err) {
+      console.error('Failed creating ticket:', err);
+    } finally {
+      setIsSubmittingTicket(false);
+    }
+  };
 
   const handleSendMessage = async (customText?: string) => {
     const textToSend = customText || inputQuestion.trim();
@@ -275,6 +317,133 @@ export const SupportView: React.FC<SupportViewProps> = ({ isDarkMode }) => {
           </button>
         </div>
       </div>
+
+      {/* Support Requests & Duty Desk Inquiries Card */}
+      <div className={`p-6 rounded-2xl border ${cardBg}`}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-700/40">
+          <div>
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-[#3898EC]" />
+              <h2 className={`font-bold text-base ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                Support Tickets & Consignment Enquiries
+              </h2>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Logged enquiries tracked by our duty dispatchers and logistics coordinators.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setIsNewTicketOpen(true)}
+            className="flex items-center gap-1.5 bg-[#3898EC] hover:bg-[#2b85d6] text-white px-4 py-2 rounded-full text-xs font-semibold shadow-xs transition-all self-start sm:self-auto cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Open Ticket</span>
+          </button>
+        </div>
+
+        {/* Tickets List */}
+        <div className="divide-y divide-slate-800/40 pt-2">
+          {tickets.length === 0 ? (
+            <p className="text-xs text-slate-400 py-4 text-center">No open support tickets. Direct phone line active 24/7.</p>
+          ) : (
+            tickets.map((t) => (
+              <div key={t.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-slate-200">{t.id}</span>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full uppercase font-semibold ${
+                      t.status === 'Resolved'
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : t.status === 'In Progress'
+                        ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20'
+                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                    }`}>
+                      {t.status}
+                    </span>
+                    <span className="text-[11px] text-slate-400">· {t.date}</span>
+                  </div>
+                  <h3 className="text-xs font-semibold text-slate-200">{t.topic}</h3>
+                  <p className="text-xs text-slate-400">{t.message}</p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* New Ticket Modal */}
+      {isNewTicketOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <form
+            onSubmit={handleCreateTicket}
+            className={`p-6 rounded-2xl border max-w-md w-full ${cardBg} shadow-2xl space-y-4`}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-700/40">
+              <h3 className="font-bold text-sm text-white">Create Support Ticket</h3>
+              <button
+                type="button"
+                onClick={() => setIsNewTicketOpen(false)}
+                className="text-slate-400 hover:text-white text-xs font-mono"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 mb-1">
+                Subject / Consignment Topic
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Tail-lift access confirmation for Bay 3"
+                value={ticketTopic}
+                onChange={(e) => setTicketTopic(e.target.value)}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-700 bg-[#060b11] text-white focus:border-[#3898EC]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 mb-1">
+                Message / Operational Details
+              </label>
+              <textarea
+                required
+                rows={4}
+                placeholder="Provide details regarding your booking reference, required ETA, or depot instructions..."
+                value={ticketMessage}
+                onChange={(e) => setTicketMessage(e.target.value)}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-700 bg-[#060b11] text-white focus:border-[#3898EC]"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsNewTicketOpen(false)}
+                className="px-4 py-2 rounded-full border border-slate-700 text-xs text-slate-300"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmittingTicket}
+                className="bg-[#3898EC] hover:bg-[#2b85d6] text-white px-5 py-2 rounded-full text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              >
+                {isSubmittingTicket ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <span>Submit Ticket</span>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

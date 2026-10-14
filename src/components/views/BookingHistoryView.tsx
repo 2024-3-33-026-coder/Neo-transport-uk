@@ -18,7 +18,7 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
   onViewPod,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<'All' | 'In transit' | 'Delivered' | 'Cancelled'>('All');
+  const [selectedFilter, setSelectedFilter] = useState<'All' | 'In transit' | 'Delivered' | 'Cancelled' | 'Scheduled'>('All');
   const [selectedPod, setSelectedPod] = useState<Booking | null>(null);
 
   const cardBg = isDarkMode ? 'bg-[#0b121c] border-[#172334]' : 'bg-white border-slate-200';
@@ -37,6 +37,7 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
       if (selectedFilter === 'In transit') return b.status === 'IN TRANSIT';
       if (selectedFilter === 'Delivered') return b.status === 'DELIVERED';
       if (selectedFilter === 'Cancelled') return b.status === 'CANCELLED';
+      if (selectedFilter === 'Scheduled') return b.status === 'SCHEDULED';
 
       return true;
     });
@@ -148,11 +149,11 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            {(['All', 'In transit', 'Delivered', 'Cancelled'] as const).map((filter) => (
+            {(['All', 'In transit', 'Delivered', 'Cancelled', 'Scheduled'] as const).map((filter) => (
               <button
                 key={filter}
                 onClick={() => setSelectedFilter(filter)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer ${
                   selectedFilter === filter
                     ? 'bg-[#3898EC] text-white font-semibold'
                     : isDarkMode
@@ -221,6 +222,11 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
                     {b.status === 'CANCELLED' && (
                       <span className="font-mono text-[10px] font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase">
                         CANCELLED
+                      </span>
+                    )}
+                    {b.status === 'SCHEDULED' && (
+                      <span className="font-mono text-[10px] font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase">
+                        SCHEDULED
                       </span>
                     )}
                   </td>

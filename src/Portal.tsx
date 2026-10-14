@@ -20,9 +20,14 @@ import {
   getPersistedBookings,
   persistBooking,
   getPersistedQuotes,
+  fetchPersistedQuotes,
   persistQuotes,
+  addQuote,
   getPersistedInvoices,
+  fetchPersistedInvoices,
   getPersistedDocuments,
+  fetchPersistedDocuments,
+  addDocument,
   persistDocuments,
   getPersistedActiveTrackingId,
   persistActiveTrackingId,
@@ -158,21 +163,36 @@ export const Portal: React.FC<PortalProps> = ({
     }
   }, []);
 
-  // Sync bookings from Supabase & listen for Admin/Portal cross-updates in real-time
+  // Sync bookings, quotes, invoices, and documents from Supabase & listen for cross-portal sync
   useEffect(() => {
     getPersistedBookings().then((fetched) => {
       if (fetched && fetched.length > 0) {
         setBookings(fetched);
       }
     });
+    fetchPersistedQuotes().then((q) => {
+      if (q && q.length > 0) setQuotes(q);
+    });
+    fetchPersistedInvoices().then((inv) => {
+      if (inv && inv.length > 0) setInvoices(inv);
+    });
+    fetchPersistedDocuments().then((docs) => {
+      if (docs && docs.length > 0) setDocuments(docs);
+    });
 
     const handleSync = () => {
       getPersistedBookings().then((fetched) => {
         if (fetched) setBookings(fetched);
       });
-      setQuotes(getPersistedQuotes());
-      setInvoices(getPersistedInvoices());
-      setDocuments(getPersistedDocuments());
+      fetchPersistedQuotes().then((q) => {
+        if (q) setQuotes(q);
+      });
+      fetchPersistedInvoices().then((inv) => {
+        if (inv) setInvoices(inv);
+      });
+      fetchPersistedDocuments().then((docs) => {
+        if (docs) setDocuments(docs);
+      });
     };
 
     window.addEventListener('neo_portal_sync', handleSync);
@@ -265,7 +285,7 @@ export const Portal: React.FC<PortalProps> = ({
   // New Booking Created: real persistence to Supabase and local cache
   const handleBookingCreated = async (newBooking: Booking, finalWizardState?: BookingWizardState) => {
     const draft = finalWizardState || wizardState;
-    await persistBooking(newBooking, draft);
+    await persistBooking(newBooking, draft, userProfile.company_id);
     setBookings((prev) => [newBooking, ...prev.filter((b) => b.id !== newBooking.id && b.reference !== newBooking.reference)]);
     setActiveTrackingBookingId(newBooking.id);
     persistActiveTrackingId(newBooking.id);
@@ -313,16 +333,14 @@ export const Portal: React.FC<PortalProps> = ({
     persistQuotes(updatedQuotes);
   };
 
-  const handleAddNewQuote = (newQuote: Quote) => {
-    const updatedQuotes = [newQuote, ...quotes];
+  const handleAddNewQuote = async (newQuote: Quote) => {
+    const updatedQuotes = await addQuote(newQuote, userProfile.company_id);
     setQuotes(updatedQuotes);
-    persistQuotes(updatedQuotes);
   };
 
-  const handleAddDocument = (newDoc: DocumentItem) => {
-    const updatedDocs = [newDoc, ...documents];
+  const handleAddDocument = async (newDoc: DocumentItem) => {
+    const updatedDocs = await addDocument(newDoc, userProfile.company_id);
     setDocuments(updatedDocs);
-    persistDocuments(updatedDocs);
   };
 
   // Active tracking booking object

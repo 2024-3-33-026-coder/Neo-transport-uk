@@ -12,6 +12,12 @@ export const InvoicesView: React.FC<InvoicesViewProps> = ({ isDarkMode, invoices
 
   const cardBg = isDarkMode ? 'bg-[#0b121c] border-[#172334]' : 'bg-white border-slate-200';
 
+  // Dynamic KPI computations from actual invoice dataset
+  const outstandingInvoices = invoices.filter((i) => i.status === 'DUE' || i.status === 'OVERDUE');
+  const outstandingAmount = outstandingInvoices.reduce((sum, i) => sum + i.amount, 0);
+  const paidInvoices = invoices.filter((i) => i.status === 'PAID');
+  const paidYtd = paidInvoices.reduce((sum, i) => sum + i.amount, 0);
+
   const handleDownloadInvoice = (inv: Invoice) => {
     // Generate text invoice summary
     const content = `================================================
@@ -51,8 +57,8 @@ IBAN: GB29 BARC 2000 0083 9210 49
     const content = `NEO TRANSPORT - CONSOLIDATED STATEMENT
 Client: Meridian Logistics
 Statement Date: 01 Aug 2026
-Outstanding Balance: £960.00
-Year-to-date Paid: £31,420.00
+Outstanding Balance: £${outstandingAmount.toLocaleString()}.00
+Year-to-date Paid: £${paidYtd.toLocaleString()}.00
 Next Scheduled Statement: 01 Sep 2026`;
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -100,7 +106,7 @@ Next Scheduled Statement: 01 Sep 2026`;
         </button>
       </div>
 
-      {/* 3 KPIs Grid (Matching Screenshot 6) */}
+      {/* 3 KPIs Grid (Dynamic calculations) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className={`p-6 rounded-2xl border ${cardBg}`}>
           <span className="text-xs text-slate-400 font-medium">Outstanding</span>
@@ -109,7 +115,7 @@ Next Scheduled Statement: 01 Sep 2026`;
               isDarkMode ? 'text-white' : 'text-slate-900'
             }`}
           >
-            £960
+            £{outstandingAmount.toLocaleString()}
           </div>
         </div>
 
@@ -120,7 +126,7 @@ Next Scheduled Statement: 01 Sep 2026`;
               isDarkMode ? 'text-white' : 'text-slate-900'
             }`}
           >
-            £31,420
+            £{paidYtd.toLocaleString()}
           </div>
         </div>
 

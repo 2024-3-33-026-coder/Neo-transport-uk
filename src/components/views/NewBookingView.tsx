@@ -852,7 +852,7 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
                     <span className="text-emerald-400 font-mono">INCLUDED FREE</span>
                   </div>
                   <div className="flex justify-between text-slate-400">
-                    <span>Live GPS Client Share Link:</span>
+                    <span>Live Corridor Tracking Share Link:</span>
                     <span className="text-emerald-400 font-mono">INCLUDED FREE</span>
                   </div>
                 </div>
@@ -975,7 +975,7 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
               </div>
 
               <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-                Driver Marek Kowalski ({form.selectedVehicle} · GN71 XPO) is en route to {form.pickupPostcode}. Real-time GPS corridor telemetry is active.
+                Driver Marek Kowalski ({form.selectedVehicle} · GN71 XPO) is en route to {form.pickupPostcode}. Real-time corridor dispatch tracking is active.
               </p>
 
               {/* Action buttons on Step 7 (Done): "Track live shipment" & "Create another booking" */}

@@ -271,10 +271,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           <Logo subtitle="24/7 FLEET DISPATCH CONTROL" isAdmin={true} />
         </div>
 
-        {/* System telemetry indicator */}
+        {/* System dispatch indicator */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[11px]">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>UK CORRIDOR DISPATCH TELEMETRY · ACTIVE</span>
+          <span>UK CORRIDOR DISPATCH ESTIMATES · ACTIVE</span>
         </div>
 
         {/* Right Actions */}
@@ -402,7 +402,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                   Dispatch Board & Live Fleet
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                  Control active customer bookings, driver assignments, route progress, and corridor telemetry.
+                  Control active customer bookings, driver assignments, route progress, and corridor dispatch estimates.
                 </p>
               </div>
 
@@ -740,7 +740,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                             <div className="space-y-2 pt-2 border-t border-slate-700/40">
                               <div className="flex items-center justify-between text-xs">
                                 <label className="font-semibold text-slate-300">
-                                  Live Corridor Route Progress:
+                                  Live Corridor Route Progress (Dispatch Estimate):
                                 </label>
                                 <span className="font-mono font-bold text-[#3898EC]">
                                   {editProgress}% Complete

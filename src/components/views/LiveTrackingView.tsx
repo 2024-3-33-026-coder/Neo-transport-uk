@@ -254,7 +254,7 @@ export const LiveTrackingView: React.FC<LiveTrackingViewProps> = ({
           <div className="flex items-center gap-2 mb-1">
             <span className="w-4 h-0.5 bg-[#3898EC]" />
             <span className="font-mono text-xs uppercase tracking-widest text-[#3898EC] font-semibold">
-              LIVE GPS TELEMETRY
+              CORRIDOR ESTIMATE · DISPATCH PROGRESS
             </span>
           </div>
           <h1
@@ -272,7 +272,7 @@ export const LiveTrackingView: React.FC<LiveTrackingViewProps> = ({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono text-xs font-semibold">
             <span className="w-2 h-2 rounded-full bg-sky-400 pulse-glow" />
-            <span>LIVE CORRIDOR</span>
+            <span>ESTIMATED CORRIDOR</span>
           </div>
 
           <button
@@ -285,7 +285,7 @@ export const LiveTrackingView: React.FC<LiveTrackingViewProps> = ({
             ) : (
               <Sparkles className="w-3.5 h-3.5" />
             )}
-            <span>Gemini Route Telemetry</span>
+            <span>Gemini Route Advisory</span>
           </button>
         </div>
       </div>
@@ -405,6 +405,9 @@ export const LiveTrackingView: React.FC<LiveTrackingViewProps> = ({
             <p className="font-mono text-xs text-slate-400 mt-0.5">
               {traveledMiles} of {totalMiles} miles ({Math.round(animatedProgress)}%)
             </p>
+            <p className="font-mono text-[10px] text-sky-400/80 mt-1">
+              Corridor estimate · Dispatch synced
+            </p>
           </div>
 
           {/* Custom SVG Route Illustration */}
@@ -497,14 +500,14 @@ export const LiveTrackingView: React.FC<LiveTrackingViewProps> = ({
             </svg>
           </div>
 
-          {/* Bottom GPS Telemetry Bar */}
+          {/* Bottom Dispatch Progress Bar */}
           <div className="z-10 flex items-center justify-between text-xs font-mono text-slate-400 pt-3 border-t border-slate-800/80">
             <span className="uppercase">
-              {routeCalc.routeSummary} · 58 MPH
+              {routeCalc.routeSummary} · Calculated Corridor
             </span>
             <span className="flex items-center gap-1.5 text-slate-400">
               <RotateCw className="w-3 h-3 text-[#3898EC] animate-spin" />
-              <span>Telemetry pinging every 10s</span>
+              <span>Dispatch progress estimate · Synced</span>
             </span>
           </div>
         </div>

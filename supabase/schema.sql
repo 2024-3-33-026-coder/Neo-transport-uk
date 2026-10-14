@@ -159,10 +159,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE POLICY "Public can submit standby applications" ON public.standby_applications
     FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Users or admin view standby applications" ON public.standby_applications
-    FOR SELECT USING (
-        public.is_admin() OR auth.role() = 'authenticated'
-    );
+-- SECURED: Only Dispatch Admins can view submitted standby applications
+CREATE POLICY "Admins view standby applications" ON public.standby_applications
+    FOR SELECT USING (public.is_admin());
 
 CREATE POLICY "Admins update standby applications" ON public.standby_applications
     FOR UPDATE USING (public.is_admin());
@@ -183,9 +182,16 @@ CREATE POLICY "Users or admin view profiles" ON public.profiles
         public.is_admin() OR id = auth.uid()
     );
 
+-- SECURED: Prevent users from promoting themselves to admin or switching company_id
 CREATE POLICY "Users update own profile" ON public.profiles
     FOR UPDATE USING (
         public.is_admin() OR id = auth.uid()
+    ) WITH CHECK (
+        public.is_admin() OR (
+            id = auth.uid() AND
+            role = 'customer' AND
+            company_id = (SELECT company_id FROM public.profiles WHERE id = auth.uid())
+        )
     );
 
 CREATE POLICY "Admins manage profiles" ON public.profiles
@@ -220,8 +226,21 @@ CREATE POLICY "Users or admin view quotes" ON public.quotes
         company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
     );
 
+CREATE POLICY "Users or admin insert quotes" ON public.quotes
+    FOR INSERT WITH CHECK (
+        public.is_admin() OR
+        company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
+    );
+
 CREATE POLICY "Users or admin update quotes" ON public.quotes
     FOR UPDATE USING (
+        public.is_admin() OR
+        company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
+    );
+
+-- SECURED: Allow customers to delete/discard their own company quotes
+CREATE POLICY "Users or admin delete quotes" ON public.quotes
+    FOR DELETE USING (
         public.is_admin() OR
         company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
     );
@@ -264,6 +283,12 @@ CREATE POLICY "Users or admin view tickets" ON public.support_tickets
 
 CREATE POLICY "Users or admin insert tickets" ON public.support_tickets
     FOR INSERT WITH CHECK (
+        public.is_admin() OR
+        company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
+    );
+
+CREATE POLICY "Users or admin update tickets" ON public.support_tickets
+    FOR UPDATE USING (
         public.is_admin() OR
         company_id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
     );

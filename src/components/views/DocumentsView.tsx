@@ -14,12 +14,14 @@ import {
 } from 'lucide-react';
 import { DocumentItem } from '../../types';
 import { analyzeDocumentWithGemini } from '../../lib/geminiClient';
+import { uploadDocumentFile, getDocumentDownloadUrl } from '../../lib/portalStore';
 
 interface DocumentsViewProps {
   isDarkMode: boolean;
   documents: DocumentItem[];
   onAddDocument: (doc: DocumentItem) => void;
   highlightRef?: string;
+  companyId?: string;
 }
 
 export const DocumentsView: React.FC<DocumentsViewProps> = ({
@@ -27,11 +29,14 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   documents,
   onAddDocument,
   highlightRef,
+  companyId,
 }) => {
   const [activeHighlight, setActiveHighlight] = useState<string | undefined>(highlightRef);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [docName, setDocName] = useState('');
   const [docCategory, setDocCategory] = useState<'pod' | 'cmr' | 'label' | 'invoice' | 'compliance'>('pod');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditResult, setAuditResult] = useState<{
     documentReference: string;
@@ -47,8 +52,25 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
 
   const cardBg = isDarkMode ? 'bg-[#0b121c] border-[#172334]' : 'bg-white border-slate-200';
 
-  const handleDownload = (doc: DocumentItem) => {
-    const text = `NEO TRANSPORT REPOSITORY\nDocument: ${doc.title}\nType: ${doc.type}\nDate: ${doc.date}\nStatus: Audited & Archived`;
+  const handleDownload = async (doc: DocumentItem) => {
+    try {
+      const downloadUrl = await getDocumentDownloadUrl(doc.pdf_url);
+      if (downloadUrl && (downloadUrl.startsWith('http') || downloadUrl.startsWith('blob:'))) {
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.target = '_blank';
+        link.download = `${doc.title.replace(/[\s—]/g, '_')}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+    } catch (e) {
+      console.warn('Failed to retrieve signed download URL, generating manifest:', e);
+    }
+
+    // Fallback document metadata manifest
+    const text = `NEO TRANSPORT REPOSITORY\nDocument: ${doc.title}\nType: ${doc.type}\nDate: ${doc.date}\nStatus: Audited & Archived\nStorage Location: ${doc.pdf_url || 'Encrypted Cloud Storage'}`;
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -75,22 +97,39 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
     }
   };
 
-  const handleUploadSubmit = (e: React.FormEvent) => {
+  const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!docName) return;
 
-    const newDoc: DocumentItem = {
-      id: `doc-${Date.now()}`,
-      title: docName,
-      type: `${docCategory.toUpperCase()} · Today`,
-      date: 'Today',
-      category: docCategory,
-      fileSize: '412 KB',
-      verified: true,
-    };
-    onAddDocument(newDoc);
-    setIsUploadOpen(false);
-    setDocName('');
+    setIsUploading(true);
+    let storagePath: string | undefined = undefined;
+
+    try {
+      if (selectedFile) {
+        const uploadResult = await uploadDocumentFile(selectedFile, companyId);
+        storagePath = uploadResult.storagePath || uploadResult.signedUrl;
+      }
+
+      const newDoc: DocumentItem = {
+        id: `doc-${Date.now()}`,
+        title: docName,
+        type: `${docCategory.toUpperCase()} · Today`,
+        date: 'Today',
+        category: docCategory,
+        fileSize: selectedFile ? `${Math.round(selectedFile.size / 1024)} KB` : '412 KB',
+        verified: true,
+        pdf_url: storagePath,
+      };
+
+      onAddDocument(newDoc);
+      setIsUploadOpen(false);
+      setDocName('');
+      setSelectedFile(null);
+    } catch (err) {
+      console.error('Document upload error:', err);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -297,25 +336,48 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
               </select>
             </div>
 
-            <div className="p-4 border-2 border-dashed border-slate-700 rounded-xl text-center text-xs text-slate-400">
+            <div className="p-4 border-2 border-dashed border-slate-700 hover:border-[#3898EC] transition-colors rounded-xl text-center text-xs text-slate-400 relative">
+              <input
+                type="file"
+                accept=".pdf,image/png,image/jpeg,image/webp"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+              />
               <Upload className="w-5 h-5 mx-auto mb-1 text-[#3898EC]" />
-              <p>Drag and drop PDF, PNG, or scan here</p>
-              <span className="text-[10px] text-slate-500">Auto-scanned by Gemini Vision</span>
+              {selectedFile ? (
+                <p className="text-emerald-400 font-semibold">{selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)</p>
+              ) : (
+                <>
+                  <p>Click or drag & drop PDF, CMR, or POD scan</p>
+                  <span className="text-[10px] text-slate-500">Auto-scanned & encrypted</span>
+                </>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setIsUploadOpen(false)}
+                onClick={() => {
+                  setIsUploadOpen(false);
+                  setSelectedFile(null);
+                }}
                 className="px-4 py-2 rounded-full border border-slate-700 text-xs text-slate-300"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="bg-[#3898EC] hover:bg-[#2b85d6] text-white px-5 py-2 rounded-full text-xs font-semibold"
+                disabled={isUploading}
+                className="bg-[#3898EC] hover:bg-[#2b85d6] text-white px-5 py-2 rounded-full text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
               >
-                Upload & Audit
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <span>Upload & Save</span>
+                )}
               </button>
             </div>
           </form>
