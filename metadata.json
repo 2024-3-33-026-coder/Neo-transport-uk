@@ -1,0 +1,6 @@
+{
+  "name": "NEO Transport — Emergency Freight & Standby Account Portal",
+  "description": "High-craft B2B emergency freight portal and £0 standby account for rapid-response logistics with AI-powered dispatch, smart booking wizard, live GPS tracking, and automated document analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

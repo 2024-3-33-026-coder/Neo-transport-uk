@@ -1,0 +1,110 @@
+export interface StandbyApplication {
+  id: string;
+  created_at: string;
+  company_name: string;
+  trading_name: string;
+  dispatch_address: string;
+  town_city: string;
+  postcode: string;
+  contact_name: string;
+  job_title: string;
+  driver_mobile: string;
+  ops_email: string;
+  accounts_email: string;
+  emergency_line: string;
+  selected_carriers: string[];
+  volume: string;
+  status: 'pending' | 'approved';
+  account_code?: string;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  account_code: string;
+  standby_active: boolean;
+  verified: boolean;
+  monthly_spend: number;
+  paid_ytd: number;
+  next_statement_date: string;
+}
+
+export interface Profile {
+  id: string;
+  company_id: string;
+  full_name: string;
+  initials: string;
+  email: string;
+  role: 'customer' | 'admin';
+}
+
+export interface BookingRow {
+  id: string;
+  company_id: string;
+  date_label: string;
+  pickup: string;
+  pickup_contact: string;
+  pickup_phone: string;
+  collection_window: string;
+  dropoff: string;
+  recipient_name: string;
+  recipient_phone: string;
+  delivery_instructions: string;
+  goods: string;
+  weight_kg: number;
+  items_count: number;
+  vehicle: string;
+  service: string;
+  distance_miles: number;
+  total_gbp: number;
+  payment_method: string;
+  po_reference: string;
+  eta_label: string;
+  status: 'Scheduled' | 'In transit' | 'Delivered' | 'Cancelled';
+  driver_name?: string;
+  driver_vehicle?: string;
+  driver_reg?: string;
+  progress_t: number;
+}
+
+export interface QuoteRow {
+  id: string;
+  company_id: string;
+  pickup: string;
+  dropoff: string;
+  route: string;
+  vehicle: string;
+  service: string;
+  price_gbp: number;
+  expires_label: string;
+  status: 'active' | 'accepted' | 'discarded';
+}
+
+export interface InvoiceRow {
+  id: string;
+  company_id: string;
+  date_label: string;
+  period_label: string;
+  amount_gbp: number;
+  status: 'Paid' | 'Due' | 'Overdue';
+  pdf_url?: string;
+}
+
+export interface DocumentRow {
+  id: string;
+  company_id: string;
+  booking_id?: string;
+  name: string;
+  type: string;
+  date_label: string;
+  file_url?: string;
+}
+
+export interface SupportTicketRow {
+  id: string;
+  company_id: string;
+  topic: string;
+  message: string;
+  status: 'Open' | 'In Progress' | 'Resolved';
+  created_at: string;
+}
