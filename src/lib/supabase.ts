@@ -32,7 +32,7 @@ export const supabase: SupabaseClient | null = (() => {
   if (!isSupabaseConfigured) return null;
   try {
     return createClient(supabaseUrl!, supabaseAnonKey!, {
-      auth: { persistSession: false, autoRefreshToken: false },
+      auth: { persistSession: true, autoRefreshToken: true },
     });
   } catch {
     return null;
@@ -116,50 +116,104 @@ export async function saveStandbyApplication(appData: Omit<StandbyApplication, '
   return newApp;
 }
 
-// 2. Auth Helper with Demo Fallback
+// 2. Sign Out Helper
+export async function signOutUser(): Promise<void> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn('Supabase sign out error:', err);
+    }
+  }
+}
+
+// 3. Restore Active Session Profile on App Load
+export async function getCurrentSessionProfile(): Promise<{
+  profile: Profile;
+  company: Company;
+} | null> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.user) return null;
+
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*, companies(*)')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError || !profileData) return null;
+
+      return {
+        profile: {
+          id: profileData.id,
+          company_id: profileData.company_id,
+          full_name: profileData.full_name || 'Chris Sullivan',
+          initials: profileData.initials || 'CS',
+          email: profileData.email,
+          role: profileData.role === 'admin' ? 'admin' : 'customer',
+        },
+        company: profileData.companies || DEFAULT_COMPANY,
+      };
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+// 4. Secure Authentication with Strict Demo Isolation
 export async function authenticateCustomer(email: string, password: string): Promise<{
   profile: Profile;
   company: Company;
 }> {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  // Production Supabase Auth: Never fall back to mock profiles on error
   if (isSupabaseConfigured && supabase) {
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email,
+      email: normalizedEmail,
       password,
     });
 
-    if (!authError && authData.user) {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*, companies(*)')
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profileData) {
-        return {
-          profile: {
-            id: profileData.id,
-            company_id: profileData.company_id,
-            full_name: profileData.full_name || 'Chris Sullivan',
-            initials: profileData.initials || 'CS',
-            email: profileData.email,
-            role: profileData.role || 'customer',
-          },
-          company: profileData.companies || DEFAULT_COMPANY,
-        };
-      }
+    if (authError || !authData.user) {
+      throw new Error(authError?.message || 'Invalid email or password.');
     }
+
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('*, companies(*)')
+      .eq('id', authData.user.id)
+      .single();
+
+    if (profileError || !profileData) {
+      throw new Error('Authenticated, but no associated profile found for this account.');
+    }
+
+    return {
+      profile: {
+        id: profileData.id,
+        company_id: profileData.company_id,
+        full_name: profileData.full_name || 'Chris Sullivan',
+        initials: profileData.initials || 'CS',
+        email: profileData.email,
+        role: profileData.role === 'admin' ? 'admin' : 'customer',
+      },
+      company: profileData.companies || DEFAULT_COMPANY,
+    };
   }
 
-  // Check for Admin / Operations credentials (e.g. ops@neotransport.co.uk)
-  const normalizedEmail = email.trim().toLowerCase();
-  if (normalizedEmail.includes('admin') || normalizedEmail.includes('ops@') || normalizedEmail.includes('dispatch@neotransport')) {
+  // Demo Fallback: ONLY active when Supabase is completely unconfigured
+  // Disallow email spoofing: only explicit pre-configured demo users are admitted
+  if (normalizedEmail === 'ops@neotransport.co.uk') {
     return {
       profile: {
         id: 'admin-ops-01',
         company_id: 'c-neo-ops',
         full_name: 'NEO Operations Dispatch',
         initials: 'OP',
-        email: email,
+        email: 'ops@neotransport.co.uk',
         role: 'admin',
       },
       company: {
@@ -175,11 +229,14 @@ export async function authenticateCustomer(email: string, password: string): Pro
     };
   }
 
-  // Demo Fallback (Customer)
-  return {
-    profile: DEFAULT_PROFILE,
-    company: DEFAULT_COMPANY,
-  };
+  if (normalizedEmail === 'chris@meridian.co.uk') {
+    return {
+      profile: DEFAULT_PROFILE,
+      company: DEFAULT_COMPANY,
+    };
+  }
+
+  throw new Error('Invalid credentials. In local demo mode, sign in as chris@meridian.co.uk or ops@neotransport.co.uk.');
 }
 
 export async function requestPasswordReset(email: string): Promise<{ success: boolean; message: string }> {

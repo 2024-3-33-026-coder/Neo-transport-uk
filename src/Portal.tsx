@@ -51,6 +51,9 @@ import {
 import {
   authenticateCustomer,
   requestPasswordReset,
+  signOutUser,
+  getCurrentSessionProfile,
+  isSupabaseConfigured,
   DEFAULT_PROFILE,
   DEFAULT_COMPANY,
 } from './lib/supabase';
@@ -87,7 +90,7 @@ export const Portal: React.FC<PortalProps> = ({
   isDarkMode,
   onToggleTheme,
   onBackToLanding,
-  initialLoggedIn = true,
+  initialLoggedIn = false,
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(initialLoggedIn);
   const [email, setEmail] = useState('chris@meridian.co.uk');
@@ -100,13 +103,19 @@ export const Portal: React.FC<PortalProps> = ({
 
   // Authenticated user's profile state
   const [userProfile, setUserProfile] = useState<{
+    id?: string;
+    company_id?: string;
     full_name: string;
     initials: string;
     companyName: string;
+    role: 'customer' | 'admin';
   }>({
+    id: DEFAULT_PROFILE.id,
+    company_id: DEFAULT_COMPANY.id,
     full_name: DEFAULT_PROFILE.full_name,
     initials: DEFAULT_PROFILE.initials,
     companyName: DEFAULT_COMPANY.name,
+    role: DEFAULT_PROFILE.role,
   });
 
   const [portalMode, setPortalMode] = useState<'customer' | 'admin'>('customer');
@@ -126,6 +135,28 @@ export const Portal: React.FC<PortalProps> = ({
   const [wizardState, setWizardState] = useState<BookingWizardState>(() => getPersistedWizardDraft());
   const [podHighlightRef, setPodHighlightRef] = useState<string | undefined>(undefined);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Check for active Supabase session on initial load
+  useEffect(() => {
+    if (isSupabaseConfigured) {
+      getCurrentSessionProfile().then((sessionData) => {
+        if (sessionData) {
+          setUserProfile({
+            id: sessionData.profile.id,
+            company_id: sessionData.profile.company_id,
+            full_name: sessionData.profile.full_name,
+            initials: sessionData.profile.initials,
+            companyName: sessionData.company.name,
+            role: sessionData.profile.role,
+          });
+          setIsAuthenticated(true);
+          if (sessionData.profile.role === 'admin') {
+            setPortalMode('admin');
+          }
+        }
+      });
+    }
+  }, []);
 
   // Sync bookings from Supabase & listen for Admin/Portal cross-updates in real-time
   useEffect(() => {
@@ -160,9 +191,12 @@ export const Portal: React.FC<PortalProps> = ({
     try {
       const authResult = await authenticateCustomer(email, password);
       setUserProfile({
+        id: authResult.profile.id,
+        company_id: authResult.profile.company_id,
         full_name: authResult.profile.full_name,
         initials: authResult.profile.initials,
         companyName: authResult.company.name,
+        role: authResult.profile.role,
       });
       setIsAuthenticated(true);
       if (authResult.profile.role === 'admin') {
@@ -199,8 +233,10 @@ export const Portal: React.FC<PortalProps> = ({
   };
 
   // Handle Sign Out
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    await signOutUser();
     setIsAuthenticated(false);
+    setPortalMode('customer');
   };
 
   // Update wizard state with persistence
@@ -484,32 +520,34 @@ export const Portal: React.FC<PortalProps> = ({
                   )}
                 </button>
 
-                {/* Fast role switcher for development/demo mode */}
-                <div className="pt-3 border-t border-slate-700/30 flex items-center justify-between text-[11px] text-slate-400">
-                  <span className="font-mono text-[10px]">Demo credentials:</span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEmail('chris@meridian.co.uk');
-                        setPassword('••••••••');
-                      }}
-                      className="px-2.5 py-1 rounded-full bg-slate-800 hover:text-white text-slate-300 font-mono text-[10px] border border-slate-700 cursor-pointer"
-                    >
-                      Customer
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEmail('ops@neotransport.co.uk');
-                        setPassword('••••••••');
-                      }}
-                      className="px-2.5 py-1 rounded-full bg-rose-950/40 border border-rose-800/40 text-rose-300 hover:text-white font-mono text-[10px] cursor-pointer"
-                    >
-                      Dispatch Admin
-                    </button>
+                {/* Fast role switcher for development/demo mode (isolated to when Supabase is not configured) */}
+                {!isSupabaseConfigured && (
+                  <div className="pt-3 border-t border-slate-700/30 flex items-center justify-between text-[11px] text-slate-400">
+                    <span className="font-mono text-[10px]">Demo credentials:</span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmail('chris@meridian.co.uk');
+                          setPassword('••••••••');
+                        }}
+                        className="px-2.5 py-1 rounded-full bg-slate-800 hover:text-white text-slate-300 font-mono text-[10px] border border-slate-700 cursor-pointer"
+                      >
+                        Customer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmail('ops@neotransport.co.uk');
+                          setPassword('••••••••');
+                        }}
+                        className="px-2.5 py-1 rounded-full bg-rose-950/40 border border-rose-800/40 text-rose-300 hover:text-white font-mono text-[10px] cursor-pointer"
+                      >
+                        Dispatch Admin
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </form>
             </div>
 
@@ -532,8 +570,8 @@ export const Portal: React.FC<PortalProps> = ({
     );
   }
 
-  // 2. AUTHENTICATED ADMIN DISPATCH PORTAL
-  if (portalMode === 'admin') {
+  // 2. AUTHENTICATED ADMIN DISPATCH PORTAL (enforce role === 'admin')
+  if (portalMode === 'admin' && userProfile.role === 'admin') {
     return (
       <AdminPortal
         isDarkMode={isDarkMode}
@@ -559,7 +597,7 @@ export const Portal: React.FC<PortalProps> = ({
         subtitle="CUSTOMER PORTAL"
         onNavigatePortal={() => setCurrentView('dashboard')}
         userProfile={userProfile}
-        onSwitchToAdmin={() => setPortalMode('admin')}
+        onSwitchToAdmin={userProfile.role === 'admin' ? () => setPortalMode('admin') : undefined}
       />
 
       {/* Mobile Portal Navigation Bar (< 1024px / lg:hidden) - Phase 1 requirement */}

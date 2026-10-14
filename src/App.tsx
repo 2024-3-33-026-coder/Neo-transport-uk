@@ -10,7 +10,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Portal } from './Portal';
-import { saveStandbyApplication } from './lib/supabase';
+import { saveStandbyApplication, isSupabaseConfigured } from './lib/supabase';
 import { CONTACT_CONFIG } from './lib/config';
 
 export interface FieldProps {
@@ -378,7 +378,7 @@ export function OnboardingForm({ isDarkMode, onOpenPortal }: OnboardingFormProps
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [showPortal, setShowPortal] = useState<boolean>(false);
-  const [portalInitialLoggedIn, setPortalInitialLoggedIn] = useState<boolean>(true);
+  const [portalInitialLoggedIn, setPortalInitialLoggedIn] = useState<boolean>(false);
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => !prev);
@@ -394,13 +394,15 @@ export default function App() {
     if (openSection) {
       openSection.scrollIntoView({ behavior: 'smooth' });
     } else {
-      setPortalInitialLoggedIn(true);
+      setPortalInitialLoggedIn(false);
       setShowPortal(true);
     }
   };
 
   const handleEnterDemoPortal = () => {
-    setPortalInitialLoggedIn(true);
+    // Only allow instant demo entrance if Supabase is completely unconfigured.
+    // In production (when configured), user must authenticate.
+    setPortalInitialLoggedIn(!isSupabaseConfigured);
     setShowPortal(true);
   };
 
