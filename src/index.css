@@ -133,19 +133,19 @@ body {
   animation: telemetryPulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* SVG Live Motion: Moving road lines, pulsing headlight cone, and rotating wheels */
+/* SVG Live Motion: Moving road lines (flowing rightwards beneath left-facing vehicles), pulsing headlight cone, and rotating wheels */
 @keyframes roadLineFlow {
   0% {
     stroke-dashoffset: 0;
   }
   100% {
-    stroke-dashoffset: 48;
+    stroke-dashoffset: -48;
   }
 }
 
 .svg-road-flow {
   stroke-dasharray: 14 10;
-  animation: roadLineFlow 1.3s linear infinite;
+  animation: roadLineFlow 0.95s linear infinite;
 }
 
 @keyframes headlightGlowPulse {
@@ -171,9 +171,8 @@ body {
 }
 
 .svg-wheel-spin {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: wheelSpin 3.2s linear infinite;
+  transform-origin: 0px 0px;
+  animation: wheelSpin 2.4s linear infinite;
 }
 
 /* Live Shimmer for Portal Route Progress Bars & Status Badges */

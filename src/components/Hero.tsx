@@ -232,19 +232,19 @@ export const Hero: React.FC = () => {
                   <line x1="332" y1="164" x2="414" y2="164" stroke="#162032" strokeWidth="1" />
                   <line x1="332" y1="194" x2="414" y2="194" stroke="#162032" strokeWidth="1" />
 
-                  {/* Ground Road Horizon Hairlines + Animated Moving Road Telemetry Line */}
-                  <line x1="8" y1="206" x2="452" y2="206" stroke="#1E293B" strokeWidth="1.2" />
+                  {/* Ground Road Horizon Hairlines + Animated Moving Road Telemetry Line (moving rightwards) */}
+                  <line x1="12" y1="208" x2="448" y2="208" stroke="#1E293B" strokeWidth="1.5" />
                   <line
-                    x1="8"
-                    y1="216"
-                    x2="452"
-                    y2="216"
-                    stroke="#2E90FA"
-                    strokeOpacity="0.45"
-                    strokeWidth="1.5"
+                    x1="12"
+                    y1="217"
+                    x2="448"
+                    y2="217"
+                    stroke="#3898FF"
+                    strokeOpacity="0.65"
+                    strokeWidth="2"
                     className="svg-road-flow"
                   />
-                  <line x1="8" y1="226" x2="452" y2="226" stroke="#162032" strokeWidth="1" />
+                  <line x1="12" y1="226" x2="448" y2="226" stroke="#162032" strokeWidth="1.2" />
 
                   {/* Pulsing Headlight Beam Cone projecting left */}
                   <polygon
@@ -328,44 +328,44 @@ export const Hero: React.FC = () => {
                   {/* Rear Taillight Accent */}
                   <rect x="345" y="158" width="3" height="14" rx="1" fill="#EF4444" opacity="0.85" />
 
-                  {/* Front Wheel (Left) with Delicate Rotation */}
+                  {/* Front Wheel (Left) resting level on y=208 road surface */}
                   <g transform="translate(145, 188)">
+                    <circle cx="0" cy="0" r="20" fill="#070B12" stroke="#334155" strokeWidth="2.2" />
                     <g className="svg-wheel-spin">
-                      <circle cx="0" cy="0" r="22" fill="#070B12" stroke="#334155" strokeWidth="2" />
                       <circle
                         cx="0"
                         cy="0"
-                        r="14"
+                        r="12"
                         fill="#0F172A"
-                        stroke="#2E90FA"
-                        strokeOpacity="0.45"
+                        stroke="#3898FF"
+                        strokeOpacity="0.55"
                         strokeWidth="1.5"
-                        strokeDasharray="6 4"
+                        strokeDasharray="6 6"
                       />
-                      <line x1="-12" y1="0" x2="12" y2="0" stroke="#334155" strokeWidth="1.2" />
-                      <line x1="0" y1="-12" x2="0" y2="12" stroke="#334155" strokeWidth="1.2" />
-                      <circle cx="0" cy="0" r="5" fill="#334155" />
+                      <line x1="-11" y1="0" x2="11" y2="0" stroke="#475569" strokeWidth="1.4" />
+                      <line x1="0" y1="-11" x2="0" y2="11" stroke="#475569" strokeWidth="1.4" />
                     </g>
+                    <circle cx="0" cy="0" r="4.5" fill="#3898FF" />
                   </g>
 
-                  {/* Rear Wheel (Right) with Delicate Rotation */}
+                  {/* Rear Wheel (Right) resting level on y=208 road surface */}
                   <g transform="translate(302, 188)">
+                    <circle cx="0" cy="0" r="20" fill="#070B12" stroke="#334155" strokeWidth="2.2" />
                     <g className="svg-wheel-spin">
-                      <circle cx="0" cy="0" r="22" fill="#070B12" stroke="#334155" strokeWidth="2" />
                       <circle
                         cx="0"
                         cy="0"
-                        r="14"
+                        r="12"
                         fill="#0F172A"
-                        stroke="#2E90FA"
-                        strokeOpacity="0.45"
+                        stroke="#3898FF"
+                        strokeOpacity="0.55"
                         strokeWidth="1.5"
-                        strokeDasharray="6 4"
+                        strokeDasharray="6 6"
                       />
-                      <line x1="-12" y1="0" x2="12" y2="0" stroke="#334155" strokeWidth="1.2" />
-                      <line x1="0" y1="-12" x2="0" y2="12" stroke="#334155" strokeWidth="1.2" />
-                      <circle cx="0" cy="0" r="5" fill="#334155" />
+                      <line x1="-11" y1="0" x2="11" y2="0" stroke="#475569" strokeWidth="1.4" />
+                      <line x1="0" y1="-11" x2="0" y2="11" stroke="#475569" strokeWidth="1.4" />
                     </g>
+                    <circle cx="0" cy="0" r="4.5" fill="#3898FF" />
                   </g>
                 </svg>
               </div>

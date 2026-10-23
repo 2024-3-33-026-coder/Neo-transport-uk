@@ -15,14 +15,23 @@ const AnimatedWheel: React.FC<{ cx: number; cy: number; r: number; innerR: numbe
   r,
   innerR,
 }) => (
-  <g>
-    <circle cx={cx} cy={cy} r={r} fill="#070B12" stroke="#475569" strokeWidth="2.2" />
-    <g className="svg-wheel-spin" style={{ transformOrigin: `${cx}px ${cy}px` }}>
-      <circle cx={cx} cy={cy} r={innerR} fill="#1E293B" stroke="#3898FF" strokeWidth="1.2" strokeDasharray="4 3" />
-      <line x1={cx - innerR} y1={cy} x2={cx + innerR} y2={cy} stroke="#64748B" strokeWidth="1.4" />
-      <line x1={cx} y1={cy - innerR} x2={cx} y2={cy + innerR} stroke="#64748B" strokeWidth="1.4" />
+  <g transform={`translate(${cx}, ${cy})`}>
+    <circle cx={0} cy={0} r={r} fill="#070B12" stroke="#475569" strokeWidth="2.2" />
+    <g className="svg-wheel-spin">
+      <circle
+        cx={0}
+        cy={0}
+        r={innerR}
+        fill="#0F172A"
+        stroke="#3898FF"
+        strokeOpacity="0.55"
+        strokeWidth="1.4"
+        strokeDasharray="6 6"
+      />
+      <line x1={-innerR + 2} y1={0} x2={innerR - 2} y2={0} stroke="#475569" strokeWidth="1.3" />
+      <line x1={0} y1={-innerR + 2} x2={0} y2={innerR - 2} stroke="#475569" strokeWidth="1.3" />
     </g>
-    <circle cx={cx} cy={cy} r={3} fill="#3898FF" />
+    <circle cx={0} cy={0} r={3.5} fill="#3898FF" />
   </g>
 );
 
@@ -50,23 +59,22 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
         </linearGradient>
       </defs>
 
-      {/* Subtle Technical Grid Lines */}
+      {/* Subtle Technical Grid Line */}
       <line x1="20" y1="35" x2="520" y2="35" stroke="#162032" strokeDasharray="3 3" />
-      <line x1="20" y1="172" x2="520" y2="172" stroke="#1E293B" strokeWidth="1.5" />
 
-      {/* Moving Road-Line Telemetry Animation */}
+      {/* Level Road Lane & Rightward-Moving Road Dashes (beneath wheels at y=185..201) */}
+      <line x1="20" y1="185" x2="520" y2="185" stroke="#1E293B" strokeWidth="1.5" />
       <line
         x1="20"
-        y1="181"
+        y1="193"
         x2="520"
-        y2="181"
-        stroke="#2E90FA"
+        y2="193"
+        stroke="#3898FF"
         strokeWidth="2"
-        strokeDasharray="16 20"
         strokeOpacity="0.65"
         className="svg-road-flow"
       />
-      <line x1="20" y1="192" x2="520" y2="192" stroke="#162032" strokeWidth="1" />
+      <line x1="20" y1="201" x2="520" y2="201" stroke="#162032" strokeWidth="1.2" />
 
       {/* Pulsing Headlight Cone */}
       <polygon
@@ -92,8 +100,8 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
             SMALL RAPID VAN • 400KG
           </text>
           <rect x="78" y="148" width="20" height="6" rx="1" fill="#FACC15" />
-          <AnimatedWheel cx={138} cy={164} r={19} innerR={9} />
-          <AnimatedWheel cx={282} cy={164} r={19} innerR={9} />
+          <AnimatedWheel cx={138} cy={165} r={19} innerR={9} />
+          <AnimatedWheel cx={282} cy={165} r={19} innerR={9} />
         </g>
       )}
 
@@ -114,8 +122,8 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
             SWB / LWB • UP TO 3 PALLETS
           </text>
           <rect x="74" y="148" width="20" height="6" rx="1" fill="#FACC15" />
-          <AnimatedWheel cx={140} cy={164} r={21} innerR={10} />
-          <AnimatedWheel cx={336} cy={164} r={21} innerR={10} />
+          <AnimatedWheel cx={140} cy={163} r={21} innerR={10} />
+          <AnimatedWheel cx={336} cy={163} r={21} innerR={10} />
         </g>
       )}
 
@@ -137,8 +145,8 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
             XLWB HIGH-CUBE • 4.2M LOAD BED • 4 PALLETS
           </text>
           <rect x="66" y="148" width="20" height="6" rx="1" fill="#FACC15" />
-          <AnimatedWheel cx={134} cy={164} r={21} innerR={10} />
-          <AnimatedWheel cx={382} cy={164} r={21} innerR={10} />
+          <AnimatedWheel cx={134} cy={163} r={21} innerR={10} />
+          <AnimatedWheel cx={382} cy={163} r={21} innerR={10} />
         </g>
       )}
 
@@ -169,8 +177,8 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
             NT-25012 • LUTON BOX + 500KG TAIL-LIFT
           </text>
           <rect x="70" y="148" width="20" height="6" rx="1" fill="#FACC15" />
-          <AnimatedWheel cx={134} cy={164} r={21} innerR={10} />
-          <AnimatedWheel cx={386} cy={164} r={21} innerR={10} />
+          <AnimatedWheel cx={134} cy={163} r={21} innerR={10} />
+          <AnimatedWheel cx={386} cy={163} r={21} innerR={10} />
         </g>
       )}
 
@@ -205,8 +213,8 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
             NT-25102 • 7.5T RIGID • 10 PALLETS • 2,500KG
           </text>
           <rect x="60" y="148" width="22" height="6" rx="1" fill="#FACC15" />
-          <AnimatedWheel cx={122} cy={164} r={22} innerR={11} />
-          <AnimatedWheel cx={412} cy={164} r={22} innerR={11} />
+          <AnimatedWheel cx={122} cy={162} r={22} innerR={11} />
+          <AnimatedWheel cx={412} cy={162} r={22} innerR={11} />
         </g>
       )}
     </svg>
