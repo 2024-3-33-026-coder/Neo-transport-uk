@@ -1,0 +1,6 @@
+{
+  "name": "NEO Transport — Emergency Freight & Rapid Response Logistics",
+  "description": "UK & EU Same-Day Courier Specialists, Emergency Freight, and £0 Monthly Fee Standby Logistics Account with 60-minute nationwide collection.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

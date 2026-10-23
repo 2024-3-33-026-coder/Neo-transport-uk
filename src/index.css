@@ -1,0 +1,262 @@
+@import "tailwindcss";
+
+:root,
+[data-theme="dark"] {
+  --bg-canvas: #05080F;
+  --bg-surface: #0A101D;
+  --bg-surface-elevated: #0D1526;
+  --bg-surface-hover: #0F172A;
+  --bg-pill: rgba(30, 41, 59, 0.45);
+  --bg-header: rgba(5, 8, 15, 0.85);
+  --border-subtle: #162032;
+  --border-focus: rgba(46, 144, 250, 0.65);
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --accent-blue: #2E90FA;
+  --accent-blue-bright: #3898FF;
+  --accent-blue-hover: #1D7FEA;
+  --status-green: #10B981;
+  --status-green-bg: rgba(16, 185, 129, 0.12);
+  --status-green-border: rgba(16, 185, 129, 0.3);
+  --status-amber: #F59E0B;
+  --status-amber-bg: rgba(245, 158, 11, 0.12);
+  --status-amber-border: rgba(245, 158, 11, 0.3);
+  --status-red: #EF4444;
+  --status-red-bg: rgba(239, 68, 68, 0.12);
+  --status-red-border: rgba(239, 68, 68, 0.3);
+  --plate-yellow: #FACC15;
+  --grid-line: rgba(22, 32, 50, 0.45);
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+[data-theme="light"] {
+  --bg-canvas: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-surface-elevated: #F1F5F9;
+  --bg-surface-hover: #F1F5F9;
+  --bg-pill: rgba(226, 232, 240, 0.75);
+  --bg-header: rgba(248, 250, 252, 0.88);
+  --border-subtle: #E2E8F0;
+  --border-focus: rgba(46, 144, 250, 0.65);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --accent-blue: #2563EB;
+  --accent-blue-bright: #2E90FA;
+  --accent-blue-hover: #1D4ED8;
+  --status-green: #059669;
+  --status-green-bg: rgba(16, 185, 129, 0.12);
+  --status-green-border: rgba(5, 150, 105, 0.35);
+  --status-amber: #D97706;
+  --status-amber-bg: rgba(245, 158, 11, 0.14);
+  --status-amber-border: rgba(217, 119, 6, 0.35);
+  --status-red: #DC2626;
+  --status-red-bg: rgba(239, 68, 68, 0.12);
+  --status-red-border: rgba(220, 38, 38, 0.35);
+  --plate-yellow: #EAB308;
+  --grid-line: rgba(226, 232, 240, 0.7);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 84px;
+  font-family: var(--font-sans);
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+}
+
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1), color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Completely hide horizontal scrollbar in fleet tabs and overflow strips */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.font-mono-tech {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-h1 {
+  font-size: clamp(2.5rem, 5vw, 4.25rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.section-h2 {
+  font-size: clamp(1.875rem, 3.5vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.card-h3 {
+  font-size: 1.1875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Operational telemetry pulse */
+@keyframes telemetryPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.88);
+  }
+}
+
+.telemetry-dot {
+  animation: telemetryPulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* SVG Live Motion: Moving road lines, pulsing headlight cone, and rotating wheels */
+@keyframes roadLineFlow {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 48;
+  }
+}
+
+.svg-road-flow {
+  stroke-dasharray: 14 10;
+  animation: roadLineFlow 1.3s linear infinite;
+}
+
+@keyframes headlightGlowPulse {
+  0%, 100% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.svg-headlight-pulse {
+  animation: headlightGlowPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes wheelSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
+.svg-wheel-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wheelSpin 3.2s linear infinite;
+}
+
+/* Live Shimmer for Portal Route Progress Bars & Status Badges */
+@keyframes routeShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+.portal-shimmer-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.portal-shimmer-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.45),
+    transparent
+  );
+  animation: routeShimmer 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Interactive Card Surface, Electric Blue Border Glow & Upward Hover Shift */
+.neo-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  transition: border-color 200ms ease-out, background-color 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms ease-out;
+}
+
+.neo-card-interactive {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  transition: border-color 200ms ease-out, background-color 200ms ease-out, transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms ease-out;
+}
+
+.neo-card-interactive:hover {
+  border-color: #2E90FA;
+  background-color: var(--bg-surface-hover);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px -6px rgba(46, 144, 250, 0.28), 0 0 0 1px rgba(46, 144, 250, 0.35);
+}
+
+.neo-card-interactive:hover .card-arrow {
+  transform: translateX(5px);
+}
+
+.card-arrow {
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Focus-visible accessibility outline */
+*:focus-visible {
+  outline: 2px solid #2E90FA;
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .telemetry-dot,
+  .svg-road-flow,
+  .svg-headlight-pulse,
+  .svg-wheel-spin,
+  .portal-shimmer-bar::after {
+    animation: none;
+  }
+  .neo-card,
+  .neo-card-interactive,
+  .card-arrow {
+    transition: none;
+  }
+  .neo-card-interactive:hover {
+    transform: none;
+  }
+}

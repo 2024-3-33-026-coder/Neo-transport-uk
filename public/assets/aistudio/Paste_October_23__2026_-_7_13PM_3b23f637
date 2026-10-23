@@ -1,0 +1,599 @@
+MASTER WEBSITE REBUILD PROMPT — NEO TRANSPORT PUBLIC WEBSITE
+Role & Objective:
+You are a Principal Frontend Architect and Design Systems Engineer. Your task is to build the complete, production-ready public marketing website for NEO Transport (neotransport.co.uk) in code, completely independent of Framer.
+
+This build is a standalone public marketing and conversion website—not a redesign or replacement of the existing Customer Portal ([https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/)). Instead, it must bridge the exact visual language of the Standby Landing Page (Primary Visual Reference) and the Customer Portal (Brand-System Reference) with the core logistics service offerings of the Legacy Public Website (Business-Content Reference) into one cohesive, high-trust enterprise product ecosystem.   
+PNG
++ 3
+
+1. Brand Context
+Company Name: NEO Transport.   
+PNG
++ 2
+
+Core Positioning: UK & EU Same-Day Courier Specialists, Emergency Freight, and Rapid Response Logistics Partner.   
+PNG
++ 1
+
+Value Proposition: NEO Transport provides both full-scale everyday B2B/B2C dedicated logistics across the UK and Europe and a pre-approved, £0-monthly-fee Emergency Standby Account that sits quietly in the background—ready to collect within 60 minutes nationwide the moment a business's primary carrier fails.   
+JPG
++ 1
+
+Ecosystem Architecture:
+
+Public Website (neotransport.co.uk): Marketing, service discovery, fleet capabilities, industry verticals, standby account pitch, and direct conversion routing.   
+PNG
++ 1
+
+Customer Portal ([https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/)): The active operational SaaS platform where clients book emergency or scheduled deliveries, track live shipments, manage quotes, download PODs (Proof of Delivery), and pay invoices.   
+PNG
+
+Primary Dispatch Hotline: 0800 246 8135 (24/7 Dispatch with an average response time of 3 minutes).   
+PNG
++ 1
+
+2. Creative Direction
+Aesthetic Archetype: Mission-Critical Operational SaaS meets Precision Swiss Editorial Grid.
+
+Visual Atmosphere: Dark-first, authoritative, calm under pressure, and engineered like a live dispatch control centre. Abandon the generic light-mode stock-template aesthetic of the legacy website in favour of the sleek, deep-obsidian canvas, crisp 1px structural borders, status pills, and telemetry cards defined by the Standby Landing Page and Customer Portal.   
+PNG
++ 4
+
+Product Continuity: Transitioning from neotransport.co.uk to [https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/) must feel instantaneous and native—sharing identical card border radii, status indicator dots, button physics, typography hierarchy, and dark-mode surface elevation.   
+PNG
++ 1
+
+3. Typography
+Primary Display & UI Sans (--font-sans): Inter or Plus Jakarta Sans (weights: 400 Regular, 500 Medium, 600 SemiBold, 700 Bold, 800 ExtraBold).
+
+Hero Display (H1): clamp(2.5rem, 5vw, 4.25rem), font-weight 800, line-height 1.08, letter-spacing -0.03em.   
+PNG
+
+Section Headings (H2): clamp(1.875rem, 3.5vw, 2.75rem), font-weight 700, line-height 1.15, letter-spacing -0.02em.   
+PNG
+
+Card Titles (H3): 1.125rem to 1.25rem, font-weight 600, letter-spacing -0.01em.   
+PNG
+
+Body Copy: 1rem (16px) to 1.125rem (18px), font-weight 400, line-height 1.6, comfortable measure (60ch–68ch max).   
+PNG
+
+Technical & Telemetry Monospace (--font-mono): JetBrains Mono or Geist Mono (weights: 400, 500, 600).
+
+Used strictly for operational metadata, status pills (FREE STANDBY ACCOUNT • NO MONTHLY FEE, HUB • MANCHESTER, UK, STANDBY ACTIVE), vehicle codes (NT-25102 • 7.5T RIGID, LUTON TAIL-LIFT), timestamps (00:00, approx 109 min), and section eyebrows (CARRIER INSURANCE, — OVERVIEW).   
+PNG
++ 4
+
+Styling: 0.75rem (12px) to 0.8125rem (13px), uppercase where applicable, letter-spacing 0.08em to 0.12em.   
+PNG
++ 1
+
+4. Colour System
+Implement a semantic CSS custom property system supporting Dark Mode (Default) and Light Mode (Secondary Toggle) via the navbar theme switcher:   
+PNG
++ 1
+
+Dark Mode Tokens (Default — Primary Experience):
+
+Canvas Background (--bg-canvas): #05080F (Deep Obsidian Navy).   
+PNG
++ 1
+
+Elevated Card Surface (--bg-surface): #0A101D (Dark Slate Navy).   
+PNG
++ 1
+
+Interactive / Hover Surface (--bg-surface-hover): #0F172A.   
+PNG
+
+Subtle Glass / Pill Surface (--bg-pill): rgba(30, 41, 59, 0.45).   
+PNG
++ 1
+
+Primary Border (--border-subtle): #162032 (1px solid crisp hairlines on cards, nav, and dividers).   
+PNG
++ 1
+
+Active / Highlight Border (--border-focus): rgba(46, 144, 250, 0.45).   
+PNG
++ 1
+
+Primary Text (--text-primary): #F8FAFC (Crisp Alabaster White).   
+PNG
++ 1
+
+Secondary Body Text (--text-secondary): #94A3B8 (Cool Muted Slate).   
+PNG
++ 1
+
+Muted / Technical Label Text (--text-muted): #64748B.   
+PNG
++ 1
+
+Brand & Semantic Status Accents:
+
+Primary Electric Blue (--accent-blue): #2E90FA / #3898FF (Primary CTA buttons, headline highlights, active underlines, and telemetry badges).   
+PNG
++ 1
+
+Primary Blue Hover (--accent-blue-hover): #1D7FEA.
+
+Operational Standby Green (--status-green): #10B981 text/dot with rgba(16, 185, 129, 0.12) background and rgba(16, 185, 129, 0.3) border (used for STANDBY ACTIVE and VERIFIED badges).   
+PNG
+
+Priority Amber (--status-amber): #F59E0B text with rgba(245, 158, 11, 0.12) background and rgba(245, 158, 11, 0.3) border (used for PRIORITY ACTIVE and urgent dispatch indicators).   
+PNG
+
+Emergency / Alert Red (--status-red): #EF4444 text with rgba(239, 68, 68, 0.12) surface.   
+PNG
+
+Headlight / Registration Accent: #FACC15 (used subtly in the vector vehicle illustration for the NEO 1 registration plate).   
+PNG
+
+Light Mode Tokens (Accessible via Header Sun/Moon Toggle):
+
+Canvas Background: #F8FAFC, Card Surface: #FFFFFF, Borders: #E2E8F0, Primary Text: #0F172A, Secondary Text: #475569, maintaining #2563EB / #2E90FA electric blue accents.
+
+5. Imagery
+No Generic Stock Cliché: Strip out the mismatched, low-resolution stock photography and generic template icons from the legacy site.   
+JPG
+
+Technical Vector Diagrams & Telemetry Cards: Follow the visual standard of the Standby Landing Page hero card—use clean, dark-mode architectural SVG illustrations (such as the side-profile NEO Transport courier van departing loading bay 23 with subtle blue headlight beams, crisp stroke lines, and branded side decals).   
+PNG
++ 1
+
+Fleet & Service Visuals: Represent vehicle classes (Small Van, SWB, LWB, XLWB, Luton Tail-Lift, 7.5T Rigid) using uniform, precision line-art SVG silhouettes paired with monospace payload/dimension telemetry badges rather than inconsistent cutout photos.   
+PNG
++ 2
+
+UI Previews: Where platform capabilities are shown (e.g., Live Tracking, Instant PODs, Route Telemetry), render authentic, code-built interactive UI mockups styled directly after the Customer Portal (Manchester -> Birmingham, NT-25102 • 7.5T RIGID, Direct transit (approx 109 min)).   
+PNG
+
+6. Motion
+Purposeful Operational Precision: Motion must feel like a high-frequency dispatch terminal—instant, composed, and never bouncy or theatrical.
+
+Timing & Easing: Use cubic-bezier(0.16, 1, 0.3, 1) for structural transitions (200ms–350ms) and 150ms ease-out for micro-interactions (button hovers, border illuminations).
+
+Live Telemetry Pulse: Status dots (FREE STANDBY ACCOUNT, HUB • MANCHESTER, UK, STANDBY ACTIVE) feature a subtle, continuous 2.5s opacity/scale pulse (keyframes pulse).   
+PNG
++ 1
+
+Scroll Reveal: Sections and bento cards enter with a restrained vertical translation (translateY(12px) to 0) and opacity fade (0 to 1), staggered by 60ms per card. Respect prefers-reduced-motion: reduce by disabling all non-essential animations.
+
+7. Signature Visual Effect
+The Interactive Dispatch & Standby Telemetry Card (Hero Right Module):
+
+Recreate and enhance the signature dark-mode operational card from the Standby Landing Page.   
+PNG
+
+Top Bar: Pill badge with pulsing status dot HUB • MANCHESTER, UK (configurable/cycling gently through key hubs: MANCHESTER, UK, BIRMINGHAM, UK, LONDON M25, UK).   
+PNG
++ 1
+
+Centre Stage: Crisp custom SVG architectural illustration of the dark-mode NEO Transport courier vehicle pulling out of depot bay 23, featuring glowing vector headlight cone gradients, yellow NEO 1 plate, and side branding (NEO TRANSPORT — EMERGENCY FREIGHT & RAPID RESPONSE).   
+PNG
+
+Telemetry Footer Grid: Divided by 1px solid #162032 hairlines:   
+PNG
+
+Left metric: MONTHLY FEE -> £0 / forever.   
+PNG
+
+Right metric: AVAILABLE UNTIL -> 00:00 (monospace bold).   
+PNG
+
+Bottom status bar: STANDBY ACTIVE (in electric blue monospace) on the left; 60-second setup • No commitment on the right.   
+PNG
+
+8. Navigation
+Build a sticky top header (height: 72px, backdrop-filter: blur(12px), background: rgba(5, 8, 15, 0.85), bottom border 1px solid var(--border-subtle)) matching the Standby Landing Page and Portal header architecture:   
+PNG
++ 1
+
+Left Cluster:
+
+Brand Logo: Blue geometric isometric cube/hexagon mark + bold uppercase NEO TRANSPORT wordmark.   
+PNG
++ 1
+
+Vertical Divider: 1px subtle vertical line (height: 20px).   
+PNG
++ 1
+
+Sub-label: Monospace uppercase EMERGENCY FREIGHT & RAPID RESPONSE.   
+PNG
+
+Right Cluster:
+
+Section Anchor Links: Services, Fleet, Coverage, How it works, Industries, FAQ.   
+PNG
++ 1
+
+Theme Switcher Pill: Dual-icon Sun / Moon pill toggle (border: 1px solid var(--border-subtle)).   
+PNG
++ 1
+
+Secondary CTA (Customer Login): Pill button (border: 1px solid var(--border-subtle), dark background, white text) linking directly to [https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/).   
+PNG
++ 1
+
+Primary CTA (Open account): Solid electric blue pill button (background: var(--accent-blue), white medium-bold text) linking to the onboarding/registration route on [https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/) (or scrolling to the Standby Account activation module with direct portal handoff).   
+PNG
++ 1
+
+9. Hero
+Construct a high-converting two-column asymmetric grid (7fr 5fr on desktop) followed by a full-width 3-column metrics bar separated by 1px solid var(--border-subtle) horizontal rules:   
+PNG
+
+Left Column:
+
+Eyebrow Pill: Pulsing blue dot + monospace uppercase FREE STANDBY ACCOUNT • NO MONTHLY FEE inside a dark blue-tinted pill border.   
+PNG
+
+Headline (H1): When your carrier fails, we keep  followed by <span class="text-accent underline">your brand moving.</span> (bright electric blue text with a thick, crisp underline offset).   
+PNG
+
+Lead Paragraph: "A pre-approved emergency logistics account that sits quietly in the background — ready the moment your main courier lets you down. Same-day collection, nationwide, until midnight."
+
+   
+PNG
+
+Action Row:
+
+Primary CTA: Solid electric blue pill button Open £0 Standby Account → (routes to portal onboarding at [https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/)).   
+PNG
++ 1
+
+Secondary CTA: Dark bordered pill button with phone icon Call Dispatch (0800 246 8135) (href="tel:08002468135").   
+PNG
+
+Tertiary Portal Link: Underlined subtle text link below buttons: Explore Active Customer Portal → (href="[https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/)").   
+PNG
++ 1
+
+Right Column:
+
+The Signature Interactive Dispatch & Standby Telemetry Card described in Section 7.   
+PNG
+
+Bottom Metrics Bar (3-Column Structural Strip):
+
+Stat 1: 60 min — Average emergency collection time nationwide.   
+PNG
+
+Stat 2: 98.7% — Same-day delivery recovery success rate.   
+PNG
+
+Stat 3: Nationwide — UK mainland & European emergency road hubs.   
+PNG
+
+10. Content Structure
+Organize the page into 8 logical, conversion-focused sections that merge the Standby Account narrative with the comprehensive logistics capabilities of the existing business:   
+PNG
++ 2
+
+Hero & Verified Operational Metrics Bar: (As specified in Section 9).   
+PNG
+
+Carrier Insurance — Why UK Supply Chains Run on Standby (#standby):
+
+Eyebrow: CARRIER INSURANCE.   
+PNG
+
+Heading: Why UK Supply Chains Run on Standby.   
+PNG
+
+3-Pillar Value Grid (matching legacy core promises upgraded to dark portal cards):
+
+Around the Clock (24/7/365): Nationwide same-day collections within 60 minutes, with dedicated vehicle delivery until midnight and beyond.   
+PNG
++ 1
+
+Deliver at Full Speed: Real-time delivery management lets you book, view live ETAs, and track shipments online day or night via the Customer Portal.   
+PNG
++ 1
+
+Zero Retainer Risk: £0 monthly fee forever. Pre-approved credit and priority dispatch access sitting ready in the background with 3-minute average dispatch response.   
+PNG
++ 1
+
+Comprehensive Logistics & Courier Services (#services):
+
+Eyebrow: OUR SERVICES.   
+JPG
+
+Heading: End-to-End UK & European Freight Capabilities.   
+JPG
+
+8-Card Bento Grid (preserving all 8 verified services from the public website):
+
+Same Day Delivery: Rapid 60-minute nationwide collection with dedicated point-to-point courier transit.   
+PNG
++ 1
+
+Full Day & Half Day Rates: Dedicated vehicle and driver hire for scheduled business operations and contract runs.   
+JPG
+
+Multi-Drop Delivery: Optimised multi-stop routing with real-time ETA telemetry and per-stop POD capture.   
+JPG
+
+European Road Transport: Direct cross-border dedicated vans and rigid trucks across UK mainland and EU corridors.   
+PNG
++ 1
+
+Irregular and Oversize: Specialist handling for non-standard palletised, fragile, or out-of-gauge commercial cargo.   
+JPG
+
+Full Load Solutions: Dedicated FTL capacity for high-volume warehouse-to-warehouse and manufacturing transfers.   
+JPG
+
+Two-Man Delivery: White-glove dual-operative transport for heavy, high-value, or complex site installations.   
+JPG
+
+Air Freight: Next-flight-out and coordinated air cargo logistics for time-critical international shipments.   
+JPG
+
+Dedicated Fleet & Payload Specifications (#fleet):
+
+Interactive tab or horizontal grid showcasing the active NEO Transport fleet classes (referencing the vehicle selector in the legacy site and live vehicle types in the portal):   
+JPG
++ 1
+
+Small Van (Urgent documents, parcels, single euro pallet).
+
+Short Wheelbase (SWB) & Long Wheelbase (LWB) (Standard commercial pallet loads).
+
+Extra Long Wheelbase (XLWB) (High-cube rapid freight).
+
+Luton Van (Tail-Lift) (LUTON TAIL-LIFT — pump-truck assisted pallet loading without forklift requirements).   
+PNG
+
+7.5T Rigid Truck (7.5T RIGID — heavy commercial freight & bulk pallet consignments).   
+PNG
+
+Inside the Customer Portal — Live Dispatch Technology (#how-it-works):
+
+Eyebrow: HOW IT WORKS.   
+PNG
++ 1
+
+Heading: From Request to Proof of Delivery — Seamless & Transparent.   
+JPG
+
+3-Step Operational Flow:
+
+01 / Make a Booking: Book business or emergency deliveries online via the Customer Portal, by phone (0800 246 8135), or via email 24/7, 365.   
+PNG
++ 2
+
+02 / Track and Trace: Dedicated vehicle dispatch with real-time GPS tracking, live ETAs, and automated transit status notifications.   
+PNG
++ 1
+
+03 / Instant Proof of Delivery: Receive instant digital PODs and invoice documentation in your portal the moment a signature is recorded.   
+PNG
++ 1
+
+Interactive Portal Preview Component: Render a realistic, read-only preview of the Customer Portal's Today's Jobs and Quick Actions modules (showing Manchester → Birmingham, NT-25102 • 7.5T RIGID, 1 IN TRANSIT, PRIORITY ACTIVE, and the GEMINI LOGISTICS PULSE status bar: "Nationwide fleet status: 14 emergency vehicles ready across Manchester, Birmingham, and London M25 corridor.") with a direct button to launch [https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/).   
+PNG
++ 2
+
+Industry-Tailored Courier Solutions (#industries):
+
+Eyebrow: SECTOR EXPERTISE.   
+JPG
+
+Heading: Industry-Tailored Courier Services.   
+JPG
+
+6-Card Sector Grid (preserving the exact 6 industries from neotransport.co.uk):
+
+Retail & eCommerce: Rapid stock replenishment, peak-season overflow, and urgent distribution centre transfers.   
+JPG
+
+Construction: Direct-to-site delivery of critical building materials, tools, and plant parts to prevent site downtime.   
+JPG
+
+Hospitality: Time-sensitive catering equipment, ambient goods, and event supply replenishment.   
+JPG
+
+Agricultural: Urgent machinery parts and rural supply chain support direct to farms and processing hubs.   
+JPG
+
+TV & Film Production: High-security, time-critical transport for camera rigs, props, staging, and production hardware.   
+JPG
+
+Marketing & Print: Exhibition stands, point-of-sale displays, and embargoed print runs delivered directly to venues.   
+JPG
+
+Frequently Asked Questions (#faq):
+
+Clean accordion component containing the 7 core operational FAQs from the public site—strictly corrected so every mention of the template placeholder "Logistiqa" is replaced with "NEO Transport":   
+JPG
+
+What services does NEO Transport offer? (Same-day courier, emergency standby freight, multi-drop, European road transport, two-man delivery, full load solutions, air freight, and real-time portal tracking).   
+PNG
++ 1
+
+How does the £0 Emergency Standby Account work? (Pre-approved account with zero monthly fee; sits active in the background so you can dispatch an emergency vehicle in 60 seconds whenever your primary carrier lets you down).   
+PNG
++ 1
+
+How do I request a quote or book a shipment? (Book or request quotes directly inside the Customer Portal at admin.neotransport.co.uk, or call 24/7 dispatch on 0800 246 8135).   
+PNG
++ 2
+
+Can I track my shipment in real-time? (Yes, all shipments include real-time GPS telemetry and live ETAs accessible through your Customer Portal dashboard).   
+PNG
++ 1
+
+Do you handle European and cross-border shipments? (Yes, we operate across the UK mainland and European road hubs with end-to-end customs and transit coordination).   
+PNG
++ 1
+
+How secure are my goods during transport? (Dedicated point-to-point vehicles mean no hub transloading or co-mingling, backed by strict handling protocols and instant digital POD signatures).   
+JPG
+
+Can I change or cancel a shipment after booking? (Yes, modifications or cancellations can be managed via your portal or by contacting our 24/7 dispatch desk prior to transit phase).   
+PNG
++ 1
+
+Final High-Urgency Conversion Banner & Enterprise Footer:
+
+Conversion Banner: Dual-path CTA card—Path A: Open £0 Standby Account ([https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/)); Path B: 24/7 Emergency Dispatch: 0800 246 8135 (Avg. response 3 min).   
+PNG
++ 3
+
+Footer: Brand mark, operational status indicator (STANDBY NETWORK ONLINE • 24/7/365), Quick Links (About, Services, Fleet, Coverage, Customer Portal, Privacy Policy, Terms & Conditions), Social links (LinkedIn, X / Twitter, Facebook, Instagram), and copyright © 2026 NEO Transport. All rights reserved..   
+PNG
++ 2
+
+11. Responsive Behaviour
+Breakpoints:
+
+Desktop (1280px+): Max-width container 1280px (px-8), 12-column CSS Grid, side-by-side Hero (7fr / 5fr), 4-column service/metric grids.   
+PNG
++ 1
+
+Tablet (768px – 1279px): Stacked Hero with telemetry card full-width below CTAs, 2-column service and industry grids, condensed navigation with slide-over drawer.
+
+Mobile (< 768px): Single-column layout (px-4), sticky bottom or top quick-action bar featuring tap-to-call 0800 246 8135 and Customer Login, fluid typography scaling via clamp(), horizontal swipeable tabs for Fleet classes.
+
+12. Interaction Rules
+Portal Routing Integrity: Every login, account opening, booking, quote, or tracking CTA must route cleanly to [https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/) (preserving query parameters or deep paths where applicable) without breaking existing portal functionality.   
+PNG
++ 1
+
+Interactive Fleet & Service Cards: Hovering over any card illuminates its border from #162032 to rgba(46, 144, 250, 0.45) and shifts the internal arrow icon translateX(4px).   
+PNG
+
+Working Theme Toggle: Clicking the Sun/Moon toggle in the navbar switches between Dark Mode (default) and Light Mode, persisting the user's preference in localStorage.   
+PNG
++ 1
+
+Interactive FAQ Accordion: Smooth height transitions with aria-expanded accessibility attributes and keyboard navigation (Enter / Space).
+
+13. Design and Engineering Rules
+Tech Stack: Build using a clean, modular, maintainable Next.js (App Router) + TypeScript + Tailwind CSS + Lucide Icons architecture (or clean Vite + React + TypeScript + Tailwind CSS if static export is preferred—configure next.config with output: 'export' compatibility so it can be hosted independently on any cloud/CDN infrastructure outside Framer).
+
+Component Architecture: Separate data arrays (services, fleet specs, industries, FAQs, portal telemetry previews) into dedicated typed configuration files so copy updates never require touching JSX layout logic.
+
+Zero External UI Bloat: Use semantic HTML5 (<header>, <main>, <section>, <nav>, <footer>), native CSS Grid/Flexbox, and lightweight custom SVG components.
+
+Accessibility (WCAG 2.1 AA): Maintain 4.5:1+ contrast ratios across both Dark and Light themes, visible :focus-visible outlines (2px solid #2E90FA), proper heading hierarchy (h1 -> h2 -> h3), and descriptive aria-label attributes on icon buttons and phone links.
+
+14. Content Authenticity
+Strictly enforce data hygiene across the entire build:
+
+PURGE Broken Legacy Statistics: Never use the broken template numbers from the old website (0+ Years of Experience, 2% On-Time Delivery, 0/7 Customer Support, 0.94 Averaged Customer Rating, 1785 Total Shipment).   
+JPG
+
+USE Verified Standby & Portal Metrics Only:
+
+60 min — Average emergency collection time nationwide.   
+PNG
+
+98.7% — Same-day delivery recovery success rate.   
+PNG
+
+Nationwide — UK mainland & European emergency road hubs.   
+PNG
+
+£0 / forever — Monthly fee for Standby Account (60-second setup • No commitment).   
+PNG
+
+24/7 Dispatch on 0800 246 8135 (Avg. response 3 min).   
+PNG
++ 1
+
+PURGE Template Brand Names: Remove every instance of "Logistiqa" from the FAQ and body copy.   
+JPG
+
+PURGE Fake Testimonials: Completely omit the fabricated template reviews from the legacy site (Olivia Martinez - GreenEarth, Michael Chen - CodeCraft, and Sophia Turner - EcoStyle praising "Handgrid" for "a thorough deep clean before hosting guests"). Do not invent fake customer quotes to replace them; rely instead on verifiable operational SLAs, transparent portal telemetry previews, and clear service specifications.   
+JPG
++ 2
+
+15. Emotional Target
+For Operations & Logistics Managers in Crisis: Immediate relief, calm authority, and certainty that an emergency vehicle can be dispatched within 60 minutes with a single click or phone call.   
+PNG
++ 1
+
+For Enterprise Procurement & Supply Chain Directors: Institutional trust—perceiving NEO Transport not as a generic man-with-a-van broker, but as a technology-driven logistics operator with a live dispatch portal, transparent pricing, and dedicated UK/EU fleet infrastructure.   
+PNG
++ 2
+
+16. Quality Control
+Before finalizing the build, verify every item on this checklist:
+
+Does the Hero match the exact hierarchy, copy, pill badges, and right-hand Manchester Hub vehicle telemetry card of the Standby Landing Page?   
+PNG
+
+Do the cards, status badges (STANDBY ACTIVE, PRIORITY ACTIVE, 1 IN TRANSIT), and typography match the Customer Portal at [https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/)?   
+PNG
+
+Are all 8 core services and all 6 industry verticals from neotransport.co.uk accurately represented?   
+JPG
+
+Are zero mentions of "Logistiqa", "Handgrid", "2% On-Time Delivery", or "0/7 Customer Support" present in the codebase?   
+JPG
+
+Do all Customer Login, Open Account, and portal preview links point accurately to [https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/)?   
+PNG
++ 1
+
+Do all dispatch phone CTAs trigger tel:08002468135?   
+PNG
++ 1
+
+Does the Sun/Moon theme toggle cleanly switch between the default Obsidian Dark Mode and a crisp Light Mode without breaking contrast?   
+PNG
++ 1
+
+17. Core Principle
+"One Unified Operational Product."
+A visitor landing on neotransport.co.uk and clicking into [https://admin.neotransport.co.uk/](https://admin.neotransport.co.uk/) must feel they are moving from the front door of a mission-critical logistics platform directly into its control room—zero visual friction, zero fake template fluff, and 100% operational clarity.   
+PNG
++ 2
+
+18. Deliverable Files
+Generate a clean, complete, self-contained project structure ready for immediate local execution and production deployment:
+
+package.json & tsconfig.json (Next.js / React + TypeScript + Tailwind CSS + lucide-react).
+
+tailwind.config.ts & src/app/globals.css (defining all dark/light CSS variables, typography tokens, custom subtle grid backgrounds, and pulse animations).
+
+src/data/siteContent.ts (centralized, strictly typed data for verified metrics, 8 services, fleet specs, 3-step workflow,portal preview jobs, 6 industries, and 7 cleaned FAQs).
+
+src/components/Navbar.tsx (sticky header with logo, EMERGENCY FREIGHT & RAPID RESPONSE badge, section links, working Sun/Moon theme toggle, Customer Login, and Open account CTAs).   
+PNG
++ 1
+
+src/components/Hero.tsx (left value proposition + CTAs, right HUB • MANCHESTER, UK custom SVG van dispatch card, and bottom 3-column metrics bar).   
+PNG
+
+src/components/StandbyValueSection.tsx (CARRIER INSURANCE — Why UK Supply Chains Run on Standby 3-pillar operational breakdown).   
+PNG
++ 1
+
+src/components/ServicesGrid.tsx (8-service interactive dark bento grid).   
+JPG
+
+src/components/FleetSpecs.tsx (interactive vehicle class selector with SVG silhouettes and payload telemetry).   
+PNG
++ 1
+
+src/components/PortalPreviewSection.tsx (How It Works 3-step flow paired with an authentic code-rendered replica of the Customer Portal's Today's Jobs, Quick Actions, and GEMINI LOGISTICS PULSE modules).   
+PNG
++ 1
+
+src/components/IndustriesGrid.tsx (6 sector-specific logistics cards).   
+JPG
+
+src/components/FaqAccordion.tsx (accessible accordion with verified NEO Transport answers).   
+JPG
+
+src/components/Footer.tsx (emergency dispatch conversion banner + full sitemap footer).   
+PNG
++ 2
+
+src/app/layout.tsx & src/app/page.tsx (assembling the full single-page marketing experience with complete SEO metadata and OpenGraph tags).
