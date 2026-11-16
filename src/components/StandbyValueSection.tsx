@@ -10,11 +10,11 @@ export const StandbyValueSection: React.FC = () => {
   const getPillarIcon = (id: string) => {
     switch (id) {
       case 'around-the-clock':
-        return <Clock className="h-5 w-5 text-[#2E90FA]" aria-hidden="true" />;
+        return <Clock className="h-5 w-5 text-[#2563EB]" aria-hidden="true" />;
       case 'deliver-full-speed':
-        return <Zap className="h-5 w-5 text-[#2E90FA]" aria-hidden="true" />;
+        return <Zap className="h-5 w-5 text-[#2563EB]" aria-hidden="true" />;
       default:
-        return <ShieldCheck className="h-5 w-5 text-[#10B981]" aria-hidden="true" />;
+        return <ShieldCheck className="h-5 w-5 text-[#059669]" aria-hidden="true" />;
     }
   };
 
@@ -22,103 +22,62 @@ export const StandbyValueSection: React.FC = () => {
     <section
       id="standby"
       aria-labelledby="standby-heading"
-      className="py-16 sm:py-20 lg:py-24 scroll-mt-16"
-      style={{ borderBottom: '1px solid var(--border-subtle)' }}
+      className="py-20 sm:py-28 bg-white border-b border-[#E5E7EB] scroll-mt-16"
     >
-      <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1160px] px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <ScrollReveal className="mx-auto max-w-3xl text-center mb-12 lg:mb-16">
-          <div className="font-mono-tech text-[12px] font-semibold uppercase tracking-[0.12em] text-[#3898FF] mb-3">
-            — WHY CHOOSE NEO TRANSPORT
+        <ScrollReveal className="mx-auto max-w-3xl text-center mb-14 lg:mb-16">
+          <div className="inline-flex items-center gap-2 mb-3.5">
+            <span className="h-1.5 w-1.5 rounded-[2px] bg-[#2563EB]" aria-hidden="true" />
+            <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2563EB]">
+              WHY CHOOSE NEO TRANSPORT
+            </span>
           </div>
-          <h2
-            id="standby-heading"
-            className="section-h2 mb-4"
-            style={{ color: 'var(--text-primary)' }}
-          >
+          <h2 id="standby-heading" className="section-h2 text-[#111827] mb-4">
             Built on Three Core Operational Pillars
           </h2>
-          <p
-            className="text-[16px] sm:text-[17px] leading-[1.6]"
-            style={{ color: 'var(--text-secondary)' }}
-          >
+          <p className="text-[16px] sm:text-[17px] leading-[1.65] text-[#4B5563]">
             Whether you need scheduled business deliveries, rapid same-day shipping, or a £0
             Emergency Standby Account when a primary carrier lets you down, our team dispatches a
             dedicated direct vehicle within 60 minutes.
           </p>
         </ScrollReveal>
 
-        {/* 3-Pillar Value Grid with 75ms stagger, electric blue hover glow, -translate-y-1 & arrow slide */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mb-16">
+        {/* 3-Pillar Minimalist Cards with large subtle index numerals (01, 02, 03) */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mb-20">
           {STANDBY_PILLARS.map((pillar, idx) => (
             <ScrollReveal key={pillar.id} delayMs={idx * 75} className="h-full">
-              <article className="neo-card-interactive rounded-2xl p-6 sm:p-7 h-full flex flex-col justify-between group">
+              <article className="neo-card-interactive rounded-2xl p-7 sm:p-8 h-full flex flex-col justify-between group">
                 <div>
-                  {/* Top row: Icon box + Status Pill */}
-                  <div className="flex items-center justify-between gap-3 mb-6">
-                    <div
-                      className="flex h-10 w-10 items-center justify-center rounded-xl"
-                      style={{
-                        backgroundColor: 'rgba(46, 144, 250, 0.1)',
-                        border: '1px solid rgba(46, 144, 250, 0.25)',
-                      }}
-                    >
+                  {/* Top row: Minimalist Icon + Subtle Editorial Numeral */}
+                  <div className="flex items-start justify-between gap-3 mb-6">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E7EB] bg-[#F9FAFB]">
                       {getPillarIcon(pillar.id)}
                     </div>
-
-                    <span
-                      className="font-mono-tech text-[10.5px] font-semibold uppercase tracking-[0.09em] px-2.5 py-1 rounded-full"
-                      style={
-                        pillar.id === 'here-for-you'
-                          ? {
-                              color: 'var(--status-green)',
-                              backgroundColor: 'var(--status-green-bg)',
-                              border: '1px solid var(--status-green-border)',
-                            }
-                          : {
-                              color: '#3898FF',
-                              backgroundColor: 'rgba(46, 144, 250, 0.1)',
-                              border: '1px solid rgba(46, 144, 250, 0.28)',
-                            }
-                      }
-                    >
-                      {pillar.badge}
+                    <span className="font-mono-tech text-[28px] font-bold leading-none text-[#E5E7EB] select-none">
+                      {pillar.index}
                     </span>
                   </div>
 
-                  {/* Title */}
-                  <h3
-                    className="card-h3 mb-3"
-                    style={{ color: 'var(--text-primary)' }}
-                  >
+                  <div className="font-mono-tech text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[#2563EB] mb-2">
+                    {pillar.badge}
+                  </div>
+
+                  <h3 className="card-h3 text-[#111827] mb-3">
                     {pillar.title}
                   </h3>
 
-                  {/* Body copy */}
-                  <p
-                    className="text-[14.5px] leading-[1.6] mb-6"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
+                  <p className="text-[14.5px] leading-[1.65] text-[#4B5563] mb-6">
                     {pillar.description}
                   </p>
                 </div>
 
-                {/* Telemetry Footer inside card with sliding arrow */}
-                <div
-                  className="pt-4 flex items-center justify-between"
-                  style={{ borderTop: '1px solid var(--border-subtle)' }}
-                >
+                <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-between gap-2">
                   <div>
-                    <span
-                      className="block font-mono-tech text-[10px] uppercase tracking-[0.08em]"
-                      style={{ color: 'var(--text-muted)' }}
-                    >
+                    <span className="block font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280]">
                       {pillar.metricLabel}
                     </span>
-                    <span
-                      className="font-mono-tech text-[12px] font-semibold"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
+                    <span className="font-mono-tech text-[12px] font-semibold text-[#111827]">
                       {pillar.metricValue}
                     </span>
                   </div>
@@ -126,10 +85,10 @@ export const StandbyValueSection: React.FC = () => {
                   <a
                     href={BRAND_CONFIG.portalBookingUrl}
                     aria-label={`${pillar.title} — Book a Delivery`}
-                    className="inline-flex items-center gap-1.5 font-mono-tech text-[11px] font-semibold text-[#3898FF]"
+                    className="inline-flex items-center gap-1 font-mono-tech text-[11px] font-semibold text-[#111827] hover:text-[#2563EB]"
                   >
                     <span>DISPATCH</span>
-                    <ArrowRight className="h-4 w-4 card-arrow text-[#3898FF]" aria-hidden="true" />
+                    <ArrowRight className="h-3.5 w-3.5 card-arrow text-[#2563EB]" aria-hidden="true" />
                   </a>
                 </div>
               </article>
@@ -141,80 +100,59 @@ export const StandbyValueSection: React.FC = () => {
         <ScrollReveal delayMs={100}>
           <div
             id="coverage"
-            className="neo-card rounded-2xl p-6 sm:p-8 scroll-mt-24"
+            className="rounded-2xl border border-[#E5E7EB] bg-[#FAFAFA] p-6 sm:p-10 scroll-mt-24"
           >
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
               <div className="lg:col-span-5">
-                <div
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4"
-                  style={{
-                    backgroundColor: 'var(--status-green-bg)',
-                    border: '1px solid var(--status-green-border)',
-                  }}
-                >
+                <div className="inline-flex items-center gap-2 mb-4">
                   <span className="h-2 w-2 rounded-full bg-[#10B981] telemetry-dot" aria-hidden="true" />
-                  <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.1em] text-[#10B981]">
+                  <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.1em] text-[#059669]">
                     LIVE FLEET NETWORK • UK &amp; EU
                   </span>
                 </div>
 
-                <h3
-                  className="text-[22px] sm:text-[26px] font-bold tracking-tight mb-3"
-                  style={{ color: 'var(--text-primary)' }}
-                >
+                <h3 className="text-[22px] sm:text-[26px] font-bold tracking-[-0.02em] text-[#111827] mb-3">
                   Nationwide UK Hubs &amp; Direct European Corridors
                 </h3>
 
-                <p
-                  className="text-[14.5px] leading-[1.6] mb-6"
-                  style={{ color: 'var(--text-secondary)' }}
-                >
+                <p className="text-[14.5px] leading-[1.65] text-[#4B5563] mb-6">
                   Pre-staged vehicles across Manchester, Birmingham, and the London M25 corridor provide
                   rapid 60-minute same-day collection nationwide, backed by direct door-to-door road
                   freight across European industrial zones.
                 </p>
 
                 <div className="space-y-2.5 mb-6">
-                  <div className="flex items-center gap-2.5 text-[13.5px]" style={{ color: 'var(--text-primary)' }}>
-                    <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" aria-hidden="true" />
+                  <div className="flex items-center gap-2.5 text-[13.5px] text-[#111827]">
+                    <CheckCircle2 className="h-4 w-4 text-[#059669] shrink-0" aria-hidden="true" />
                     <span>14 dedicated vehicles pre-staged across primary UK motorway hubs</span>
                   </div>
-                  <div className="flex items-center gap-2.5 text-[13.5px]" style={{ color: 'var(--text-primary)' }}>
-                    <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" aria-hidden="true" />
+                  <div className="flex items-center gap-2.5 text-[13.5px] text-[#111827]">
+                    <CheckCircle2 className="h-4 w-4 text-[#059669] shrink-0" aria-hidden="true" />
                     <span>Zero hub transloading — dedicated vehicle from collection bay to destination</span>
                   </div>
-                  <div className="flex items-center gap-2.5 text-[13.5px]" style={{ color: 'var(--text-primary)' }}>
-                    <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" aria-hidden="true" />
+                  <div className="flex items-center gap-2.5 text-[13.5px] text-[#111827]">
+                    <CheckCircle2 className="h-4 w-4 text-[#059669] shrink-0" aria-hidden="true" />
                     <span>Direct UK ↔ EU cross-border customs &amp; urgent transit coordination</span>
                   </div>
                 </div>
 
                 <a
                   href={BRAND_CONFIG.portalBookingUrl}
-                  className="inline-flex items-center gap-2 text-[13.5px] font-semibold text-[#3898FF] hover:underline"
+                  className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-[#2563EB] hover:underline"
                 >
                   <span>Book a Same-Day Delivery or Open a £0 Standby Account</span>
                   <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </a>
               </div>
 
-              {/* Right: Interactive Hub Telemetry Matrix with Smooth Count-Up */}
+              {/* Right: Interactive Hub Telemetry Matrix */}
               <div className="lg:col-span-7">
-                <div
-                  className="rounded-xl p-4 sm:p-5"
-                  style={{
-                    backgroundColor: 'var(--bg-canvas)',
-                    border: '1px solid var(--border-subtle)',
-                  }}
-                >
-                  <div
-                    className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4"
-                    style={{ borderBottom: '1px solid var(--border-subtle)' }}
-                  >
-                    <span className="font-mono-tech text-[11px] uppercase tracking-[0.1em]" style={{ color: 'var(--text-muted)' }}>
+                <div className="rounded-xl border border-[#E5E7EB] bg-white p-5 sm:p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-[#E5E7EB]">
+                    <span className="font-mono-tech text-[11px] uppercase tracking-[0.1em] text-[#6B7280]">
                       LIVE REGIONAL DISPATCH CORRIDORS
                     </span>
-                    <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Regional Dispatch Hubs">
+                    <div className="flex flex-wrap gap-1 rounded-lg bg-[#F3F4F6] p-1" role="tablist" aria-label="Regional Dispatch Hubs">
                       {DISPATCH_HUBS.map((hub) => {
                         const isSelected = hub.id === selectedHubId;
                         return (
@@ -224,19 +162,11 @@ export const StandbyValueSection: React.FC = () => {
                             role="tab"
                             aria-selected={isSelected}
                             onClick={() => setSelectedHubId(hub.id)}
-                            className={`font-mono-tech text-[11px] px-3 py-1 rounded-full transition-colors cursor-pointer ${
+                            className={`font-mono-tech text-[11px] px-3 py-1 rounded-md transition-all cursor-pointer ${
                               isSelected
-                                ? 'bg-[#2E90FA] text-white font-semibold'
-                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                                ? 'bg-[#111827] text-white font-semibold shadow-xs'
+                                : 'text-[#4B5563] hover:text-[#111827]'
                             }`}
-                            style={
-                              !isSelected
-                                ? {
-                                    backgroundColor: 'var(--bg-surface)',
-                                    border: '1px solid var(--border-subtle)',
-                                  }
-                                : undefined
-                            }
                           >
                             {hub.label}
                           </button>
@@ -245,77 +175,56 @@ export const StandbyValueSection: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Selected Hub Telemetry Detail with Count-Up Animation */}
+                  {/* Selected Hub Telemetry Detail */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                    <div
-                      className="rounded-lg p-3.5"
-                      style={{
-                        backgroundColor: 'var(--bg-surface)',
-                        border: '1px solid var(--border-subtle)',
-                      }}
-                    >
-                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] mb-1" style={{ color: 'var(--text-muted)' }}>
+                    <div className="rounded-lg border border-[#E5E7EB] bg-[#FAFAFA] p-3.5">
+                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280] mb-1">
                         SELECTED HUB
                       </div>
-                      <div className="font-mono-tech text-[13px] font-semibold text-[#3898FF]">
+                      <div className="font-mono-tech text-[13px] font-semibold text-[#2563EB]">
                         {activeHub.code}
                       </div>
-                      <div className="font-mono-tech text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
+                      <div className="font-mono-tech text-[11px] text-[#6B7280] mt-1">
                         {activeHub.coordinates}
                       </div>
                     </div>
 
-                    <div
-                      className="rounded-lg p-3.5"
-                      style={{
-                        backgroundColor: 'var(--bg-surface)',
-                        border: '1px solid var(--border-subtle)',
-                      }}
-                    >
-                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] mb-1" style={{ color: 'var(--text-muted)' }}>
+                    <div className="rounded-lg border border-[#E5E7EB] bg-[#FAFAFA] p-3.5">
+                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280] mb-1">
                         AVG COLLECTION SLA
                       </div>
-                      <div className="font-mono-tech text-[20px] font-bold" style={{ color: 'var(--text-primary)' }}>
+                      <div className="font-mono-tech text-[20px] font-bold text-[#111827]">
                         <AnimatedCounter target={activeHub.avgCollectionMins} suffix=" min" />
                       </div>
-                      <div className="font-mono-tech text-[11px] text-[#10B981]">
+                      <div className="font-mono-tech text-[11px] text-[#059669]">
                         Target ≤ 60 min nationwide
                       </div>
                     </div>
 
-                    <div
-                      className="rounded-lg p-3.5"
-                      style={{
-                        backgroundColor: 'var(--bg-surface)',
-                        border: '1px solid var(--border-subtle)',
-                      }}
-                    >
-                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] mb-1" style={{ color: 'var(--text-muted)' }}>
+                    <div className="rounded-lg border border-[#E5E7EB] bg-[#FAFAFA] p-3.5">
+                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280] mb-1">
                         STANDBY FLEET READY
                       </div>
-                      <div className="font-mono-tech text-[20px] font-bold" style={{ color: 'var(--text-primary)' }}>
+                      <div className="font-mono-tech text-[20px] font-bold text-[#111827]">
                         <AnimatedCounter target={activeHub.activeVehicles} suffix=" Units" />
                       </div>
-                      <div className="font-mono-tech text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                      <div className="font-mono-tech text-[11px] text-[#4B5563]">
                         Bay {activeHub.bayNumber} • Immediate Rollout
                       </div>
                     </div>
                   </div>
 
-                  <div
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg px-4 py-3"
-                    style={{
-                      backgroundColor: 'var(--bg-surface)',
-                      border: '1px solid var(--border-subtle)',
-                    }}
-                  >
-                    <div className="flex items-center gap-2 text-[12.5px]" style={{ color: 'var(--text-secondary)' }}>
-                      <MapPin className="h-4 w-4 text-[#2E90FA] shrink-0" aria-hidden="true" />
-                      <span>Primary Motorway Arteries: <strong style={{ color: 'var(--text-primary)' }}>{activeHub.corridor}</strong></span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border border-[#E5E7EB] bg-[#FAFAFA] px-4 py-3">
+                    <div className="flex items-center gap-2 text-[12.5px] text-[#4B5563]">
+                      <MapPin className="h-4 w-4 text-[#2563EB] shrink-0" aria-hidden="true" />
+                      <span>
+                        Primary Motorway Arteries:{' '}
+                        <strong className="text-[#111827]">{activeHub.corridor}</strong>
+                      </span>
                     </div>
                     <a
                       href={BRAND_CONFIG.portalBookingUrl}
-                      className="font-mono-tech text-[11.5px] font-semibold text-[#3898FF] hover:underline whitespace-nowrap"
+                      className="font-mono-tech text-[11.5px] font-semibold text-[#2563EB] hover:underline whitespace-nowrap"
                     >
                       DISPATCH FROM {activeHub.id.toUpperCase()} →
                     </a>

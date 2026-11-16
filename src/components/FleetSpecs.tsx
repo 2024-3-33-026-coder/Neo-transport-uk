@@ -16,22 +16,22 @@ const AnimatedWheel: React.FC<{ cx: number; cy: number; r: number; innerR: numbe
   innerR,
 }) => (
   <g transform={`translate(${cx}, ${cy})`}>
-    <circle cx={0} cy={0} r={r} fill="#070B12" stroke="#475569" strokeWidth="2.2" />
+    <circle cx={0} cy={0} r={r} fill="#111827" stroke="#4B5563" strokeWidth="2.2" />
     <g className="svg-wheel-spin">
       <circle
         cx={0}
         cy={0}
         r={innerR}
-        fill="#0F172A"
-        stroke="#3898FF"
-        strokeOpacity="0.55"
+        fill="#1F2937"
+        stroke="#60A5FA"
+        strokeOpacity="0.65"
         strokeWidth="1.4"
         strokeDasharray="6 6"
       />
-      <line x1={-innerR + 2} y1={0} x2={innerR - 2} y2={0} stroke="#475569" strokeWidth="1.3" />
-      <line x1={0} y1={-innerR + 2} x2={0} y2={innerR - 2} stroke="#475569" strokeWidth="1.3" />
+      <line x1={-innerR + 2} y1={0} x2={innerR - 2} y2={0} stroke="#9CA3AF" strokeWidth="1.3" />
+      <line x1={0} y1={-innerR + 2} x2={0} y2={innerR - 2} stroke="#9CA3AF" strokeWidth="1.3" />
     </g>
-    <circle cx={0} cy={0} r={3.5} fill="#3898FF" />
+    <circle cx={0} cy={0} r={3.5} fill="#3B82F6" />
   </g>
 );
 
@@ -50,31 +50,31 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
     >
       <defs>
         <linearGradient id={`beam-${type}`} x1="85" y1="145" x2="5" y2="132" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#2E90FA" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#2E90FA" stopOpacity="0" />
+          <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.32" />
+          <stop offset="100%" stopColor="#60A5FA" stopOpacity="0" />
         </linearGradient>
         <linearGradient id={`body-${type}`} x1="80" y1="50" x2="460" y2="170" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#131E35" />
-          <stop offset="100%" stopColor="#090F1C" />
+          <stop offset="0%" stopColor="#1F2937" />
+          <stop offset="100%" stopColor="#111827" />
         </linearGradient>
       </defs>
 
       {/* Subtle Technical Grid Line */}
-      <line x1="20" y1="35" x2="520" y2="35" stroke="#162032" strokeDasharray="3 3" />
+      <line x1="20" y1="35" x2="520" y2="35" stroke="#E5E7EB" strokeDasharray="3 3" />
 
       {/* Level Road Lane & Rightward-Moving Road Dashes (beneath wheels at y=185..201) */}
-      <line x1="20" y1="185" x2="520" y2="185" stroke="#1E293B" strokeWidth="1.5" />
+      <line x1="20" y1="185" x2="520" y2="185" stroke="#D1D5DB" strokeWidth="1.5" />
       <line
         x1="20"
         y1="193"
         x2="520"
         y2="193"
-        stroke="#3898FF"
+        stroke="#2563EB"
         strokeWidth="2"
         strokeOpacity="0.65"
         className="svg-road-flow"
       />
-      <line x1="20" y1="201" x2="520" y2="201" stroke="#162032" strokeWidth="1.2" />
+      <line x1="20" y1="201" x2="520" y2="201" stroke="#E5E7EB" strokeWidth="1.2" />
 
       {/* Pulsing Headlight Cone */}
       <polygon
@@ -88,15 +88,15 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
           <path
             d="M84 152 L90 128 L145 92 L320 92 L320 162 L90 162 C86 162 84 158 84 152 Z"
             fill={`url(#body-${type})`}
-            stroke="#3898FF"
+            stroke="#111827"
             strokeWidth="1.5"
           />
-          <path d="M148 98 L195 98 L195 126 L112 126 L148 98 Z" fill="#060A12" stroke="#26354D" />
-          <line x1="204" y1="94" x2="204" y2="160" stroke="#1E293B" />
-          <text x="218" y="125" fill="#F8FAFC" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="11" fontWeight="800">
+          <path d="M148 98 L195 98 L195 126 L112 126 L148 98 Z" fill="#374151" stroke="#4B5563" />
+          <line x1="204" y1="94" x2="204" y2="160" stroke="#374151" />
+          <text x="218" y="125" fill="#FFFFFF" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="11" fontWeight="800">
             NEO TRANSPORT
           </text>
-          <text x="218" y="136" fill="#3898FF" fontFamily="JetBrains Mono, monospace" fontSize="7">
+          <text x="218" y="136" fill="#60A5FA" fontFamily="JetBrains Mono, monospace" fontSize="7">
             SMALL RAPID VAN • 400KG
           </text>
           <rect x="78" y="148" width="20" height="6" rx="1" fill="#FACC15" />
@@ -110,15 +110,15 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
           <path
             d="M80 152 L86 124 L142 80 L380 80 L380 162 L86 162 C82 162 80 158 80 152 Z"
             fill={`url(#body-${type})`}
-            stroke="#3898FF"
+            stroke="#111827"
             strokeWidth="1.5"
           />
-          <path d="M146 87 L194 87 L194 120 L108 120 L146 87 Z" fill="#060A12" stroke="#26354D" />
-          <line x1="204" y1="82" x2="204" y2="160" stroke="#1E293B" />
-          <text x="224" y="118" fill="#F8FAFC" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="12.5" fontWeight="800">
+          <path d="M146 87 L194 87 L194 120 L108 120 L146 87 Z" fill="#374151" stroke="#4B5563" />
+          <line x1="204" y1="82" x2="204" y2="160" stroke="#374151" />
+          <text x="224" y="118" fill="#FFFFFF" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="12.5" fontWeight="800">
             NEO TRANSPORT
           </text>
-          <text x="224" y="131" fill="#3898FF" fontFamily="JetBrains Mono, monospace" fontSize="7.5">
+          <text x="224" y="131" fill="#60A5FA" fontFamily="JetBrains Mono, monospace" fontSize="7.5">
             SWB / LWB • UP TO 3 PALLETS
           </text>
           <rect x="74" y="148" width="20" height="6" rx="1" fill="#FACC15" />
@@ -132,16 +132,16 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
           <path
             d="M72 152 L78 122 L134 72 L438 72 L438 162 L78 162 C74 162 72 158 72 152 Z"
             fill={`url(#body-${type})`}
-            stroke="#3898FF"
+            stroke="#111827"
             strokeWidth="1.5"
           />
-          <path d="M138 80 L186 80 L186 118 L100 118 L138 80 Z" fill="#060A12" stroke="#26354D" />
-          <line x1="196" y1="74" x2="196" y2="160" stroke="#1E293B" />
-          <line x1="316" y1="74" x2="316" y2="160" stroke="#162032" strokeDasharray="2 2" />
-          <text x="225" y="114" fill="#F8FAFC" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="13" fontWeight="800">
+          <path d="M138 80 L186 80 L186 118 L100 118 L138 80 Z" fill="#374151" stroke="#4B5563" />
+          <line x1="196" y1="74" x2="196" y2="160" stroke="#374151" />
+          <line x1="316" y1="74" x2="316" y2="160" stroke="#374151" strokeDasharray="2 2" />
+          <text x="225" y="114" fill="#FFFFFF" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="13" fontWeight="800">
             NEO TRANSPORT
           </text>
-          <text x="225" y="128" fill="#3898FF" fontFamily="JetBrains Mono, monospace" fontSize="8">
+          <text x="225" y="128" fill="#60A5FA" fontFamily="JetBrains Mono, monospace" fontSize="8">
             XLWB HIGH-CUBE • 4.2M LOAD BED • 4 PALLETS
           </text>
           <rect x="66" y="148" width="20" height="6" rx="1" fill="#FACC15" />
@@ -155,25 +155,25 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
           {/* Cab */}
           <path
             d="M76 152 L82 124 L128 88 L184 88 L184 162 L82 162 Z"
-            fill="#0D1628"
-            stroke="#334155"
+            fill="#1F2937"
+            stroke="#111827"
             strokeWidth="1.5"
           />
-          <path d="M130 94 L174 94 L174 122 L98 122 L130 94 Z" fill="#060A12" stroke="#26354D" />
+          <path d="M130 94 L174 94 L174 122 L98 122 L130 94 Z" fill="#374151" stroke="#4B5563" />
           {/* Luton Box Body with Over-Cab Pod */}
           <path
             d="M122 56 L442 56 L442 158 L184 158 L184 84 L122 84 Z"
             fill={`url(#body-${type})`}
-            stroke="#3898FF"
+            stroke="#111827"
             strokeWidth="1.6"
           />
           {/* Hydraulic Tail-Lift Assembly at Rear */}
-          <rect x="442" y="118" width="8" height="42" fill="#2E90FA" />
-          <line x1="450" y1="158" x2="482" y2="158" stroke="#3898FF" strokeWidth="3" />
-          <text x="225" y="106" fill="#F8FAFC" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="14" fontWeight="800">
+          <rect x="442" y="118" width="8" height="42" fill="#2563EB" />
+          <line x1="450" y1="158" x2="482" y2="158" stroke="#2563EB" strokeWidth="3" />
+          <text x="225" y="106" fill="#FFFFFF" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="14" fontWeight="800">
             NEO TRANSPORT
           </text>
-          <text x="225" y="121" fill="#3898FF" fontFamily="JetBrains Mono, monospace" fontSize="8">
+          <text x="225" y="121" fill="#60A5FA" fontFamily="JetBrains Mono, monospace" fontSize="8">
             NT-25012 • LUTON BOX + 500KG TAIL-LIFT
           </text>
           <rect x="70" y="148" width="20" height="6" rx="1" fill="#FACC15" />
@@ -187,11 +187,11 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
           {/* HGV Rigid Cab */}
           <path
             d="M66 154 L66 106 L104 72 L166 72 L166 160 L66 160 Z"
-            fill="#0D1628"
-            stroke="#334155"
+            fill="#1F2937"
+            stroke="#111827"
             strokeWidth="1.5"
           />
-          <path d="M106 80 L154 80 L154 114 L78 114 L106 80 Z" fill="#060A12" stroke="#26354D" />
+          <path d="M106 80 L154 80 L154 114 L78 114 L106 80 Z" fill="#374151" stroke="#4B5563" />
           {/* 7.5T Heavy Box Body */}
           <rect
             x="170"
@@ -200,16 +200,16 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
             height="110"
             rx="2"
             fill={`url(#body-${type})`}
-            stroke="#3898FF"
+            stroke="#111827"
             strokeWidth="1.6"
           />
           {/* Heavy Tail-Lift */}
-          <rect x="480" y="108" width="9" height="50" fill="#2E90FA" />
-          <line x1="489" y1="156" x2="522" y2="156" stroke="#3898FF" strokeWidth="3.5" />
-          <text x="230" y="102" fill="#F8FAFC" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="15" fontWeight="800">
+          <rect x="480" y="108" width="9" height="50" fill="#2563EB" />
+          <line x1="489" y1="156" x2="522" y2="156" stroke="#2563EB" strokeWidth="3.5" />
+          <text x="230" y="102" fill="#FFFFFF" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="15" fontWeight="800">
             NEO TRANSPORT
           </text>
-          <text x="230" y="118" fill="#3898FF" fontFamily="JetBrains Mono, monospace" fontSize="8.5">
+          <text x="230" y="118" fill="#60A5FA" fontFamily="JetBrains Mono, monospace" fontSize="8.5">
             NT-25102 • 7.5T RIGID • 10 PALLETS • 2,500KG
           </text>
           <rect x="60" y="148" width="22" height="6" rx="1" fill="#FACC15" />
@@ -224,7 +224,7 @@ const FleetSilhouetteSvg: React.FC<{ type: FleetVehicle['silhouetteType']; code:
 export const FleetSpecs: React.FC = () => {
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('luton-tail-lift');
 
-  // Refs & state for smooth sliding active blue pill background
+  // Refs & state for smooth sliding active pill background
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [pillGeometry, setPillGeometry] = useState<{ left: number; width: number; height: number } | null>(null);
 
@@ -267,52 +267,46 @@ export const FleetSpecs: React.FC = () => {
     <section
       id="fleet"
       aria-labelledby="fleet-heading"
-      className="py-16 sm:py-20 lg:py-24 scroll-mt-16"
-      style={{ borderBottom: '1px solid var(--border-subtle)' }}
+      className="py-20 sm:py-28 bg-white border-b border-[#E5E7EB] scroll-mt-16"
     >
-      <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1160px] px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <ScrollReveal className="max-w-3xl mb-10 lg:mb-12">
-          <div className="font-mono-tech text-[12px] font-semibold uppercase tracking-[0.12em] text-[#3898FF] mb-3">
-            — DEDICATED FLEET &amp; PAYLOAD TELEMETRY
+          <div className="inline-flex items-center gap-2 mb-3.5">
+            <span className="h-1.5 w-1.5 rounded-[2px] bg-[#2563EB]" aria-hidden="true" />
+            <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2563EB]">
+              DEDICATED FLEET &amp; PAYLOAD TELEMETRY
+            </span>
           </div>
-          <h2
-            id="fleet-heading"
-            className="section-h2 mb-3"
-            style={{ color: 'var(--text-primary)' }}
-          >
+          <h2 id="fleet-heading" className="section-h2 text-[#111827] mb-3">
             Engineered Fleet Classes From Rapid Courier Vans to 7.5T Rigids
           </h2>
-          <p
-            className="text-[16px] leading-[1.6]"
-            style={{ color: 'var(--text-secondary)' }}
-          >
+          <p className="text-[16px] leading-[1.65] text-[#4B5563]">
             Select a vehicle class below to inspect verified load-bed dimensions, Euro/UK pallet
             capacities, and tail-lift specifications—or use the interactive load matcher to auto-assign
             the optimal vehicle for your consignment.
           </p>
         </ScrollReveal>
 
-        {/* Horizontal Swipeable Vehicle Class Selector Tabs (zero scrollbar + smooth sliding active blue pill) */}
+        {/* Vehicle Class Selector Tabs (swipeable on mobile, equal 5-column grid on desktop with smooth sliding black pill) */}
         <ScrollReveal delayMs={75}>
           <div
             role="tablist"
             aria-label="NEO Transport Fleet Classes"
-            className="relative flex items-center gap-2.5 overflow-x-auto pb-2 mb-8 no-scrollbar"
+            className="relative max-lg:flex max-lg:items-center max-lg:overflow-x-auto max-lg:pb-2 gap-2.5 lg:grid lg:grid-cols-5 mb-8 no-scrollbar"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {/* Smooth Sliding Blue Pill Background */}
             {pillGeometry && (
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute top-0 left-0 rounded-full bg-[#2E90FA]"
+                className="pointer-events-none absolute top-0 left-0 rounded-lg bg-[#111827]"
                 style={{
                   width: `${pillGeometry.width}px`,
                   height: `${pillGeometry.height}px`,
                   transform: `translateX(${pillGeometry.left}px)`,
                   transition:
                     'transform 300ms cubic-bezier(0.22, 1, 0.36, 1), width 300ms cubic-bezier(0.22, 1, 0.36, 1)',
-                  boxShadow: '0 4px 18px rgba(46, 144, 250, 0.38)',
+                  boxShadow: '0 4px 12px rgba(17, 24, 39, 0.16)',
                 }}
               />
             )}
@@ -329,28 +323,23 @@ export const FleetSpecs: React.FC = () => {
                   role="tab"
                   aria-selected={active}
                   onClick={() => setSelectedVehicleId(vehicle.id)}
-                  className={`relative z-10 flex items-center gap-2.5 rounded-full px-5 py-2.5 text-[13.5px] font-semibold transition-colors duration-200 whitespace-nowrap cursor-pointer ${
-                    active ? 'text-white' : 'hover:border-[#2E90FA]/50'
+                  className={`relative z-10 flex shrink-0 flex-col items-start justify-center gap-0.5 rounded-lg px-4 py-3 text-left transition-colors duration-200 whitespace-nowrap cursor-pointer ${
+                    active
+                      ? 'text-white border border-transparent'
+                      : 'bg-[#FAFAFA] border border-[#E5E7EB] text-[#111827] hover:border-[#D1D5DB]'
                   }`}
                   style={
-                    !active
-                      ? {
-                          backgroundColor: 'var(--bg-surface)',
-                          border: '1px solid var(--border-subtle)',
-                          color: 'var(--text-primary)',
-                        }
-                      : {
-                          backgroundColor: pillGeometry ? 'transparent' : '#2E90FA',
-                          border: '1px solid transparent',
-                        }
+                    active && !pillGeometry
+                      ? { backgroundColor: '#111827' }
+                      : undefined
                   }
                 >
-                  <span>{vehicle.shortName}</span>
+                  <span className="text-[13.5px] font-semibold leading-tight">
+                    {vehicle.shortName}
+                  </span>
                   <span
-                    className={`font-mono-tech text-[10.5px] px-2 py-0.5 rounded-full transition-colors ${
-                      active
-                        ? 'bg-black/25 text-white'
-                        : 'text-[var(--text-muted)]'
+                    className={`font-mono-tech text-[10.5px] transition-colors ${
+                      active ? 'text-[#93C5FD]' : 'text-[#6B7280]'
                     }`}
                   >
                     {vehicle.pallets} pallets
@@ -361,47 +350,28 @@ export const FleetSpecs: React.FC = () => {
           </div>
         </ScrollReveal>
 
-        {/* Main Fleet Showcase Grid (7 cols Active Vehicle Spec / 5 cols Interactive Load Matcher) */}
+        {/* Main Fleet Showcase Grid */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           {/* Left 7 Cols: Active Vehicle Architectural Card */}
           <ScrollReveal delayMs={120} className="lg:col-span-7 h-full">
             <div className="neo-card rounded-2xl overflow-hidden h-full flex flex-col justify-between">
               <div>
                 {/* Top Telemetry Bar */}
-                <div
-                  className="flex flex-wrap items-center justify-between gap-2 px-6 py-4"
-                  style={{ borderBottom: '1px solid var(--border-subtle)' }}
-                >
+                <div className="flex flex-wrap items-center justify-between gap-2 px-6 py-4 bg-[#FAFAFA] border-b border-[#E5E7EB]">
                   <div className="flex items-center gap-2.5">
                     <span className="h-2 w-2 rounded-full bg-[#10B981] telemetry-dot" aria-hidden="true" />
-                    <span
-                      className="font-mono-tech text-[11.5px] font-semibold uppercase tracking-[0.09em]"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
+                    <span className="font-mono-tech text-[11.5px] font-semibold uppercase tracking-[0.09em] text-[#111827]">
                       {selectedVehicle.code}
                     </span>
                   </div>
 
-                  <span
-                    className="font-mono-tech text-[10.5px] font-semibold uppercase tracking-[0.09em] px-3 py-1 rounded-full"
-                    style={{
-                      color: '#3898FF',
-                      backgroundColor: 'rgba(46, 144, 250, 0.1)',
-                      border: '1px solid rgba(46, 144, 250, 0.28)',
-                    }}
-                  >
+                  <span className="font-mono-tech text-[10.5px] font-semibold uppercase tracking-[0.09em] text-[#2563EB]">
                     {selectedVehicle.badge}
                   </span>
                 </div>
 
-                {/* SVG Architectural Vehicle Diagram with Animated Road, Headlight & Wheels */}
-                <div
-                  className="px-6 py-5"
-                  style={{
-                    backgroundColor: 'var(--bg-canvas)',
-                    borderBottom: '1px solid var(--border-subtle)',
-                  }}
-                >
+                {/* SVG Architectural Vehicle Diagram */}
+                <div className="px-6 py-6 bg-[#FAFAFA]/60 border-b border-[#E5E7EB]">
                   <FleetSilhouetteSvg
                     type={selectedVehicle.silhouetteType}
                     code={selectedVehicle.code}
@@ -410,92 +380,56 @@ export const FleetSpecs: React.FC = () => {
 
                 {/* Vehicle Details & Dimension Telemetry Badges */}
                 <div className="p-6">
-                  <h3
-                    className="text-[22px] font-bold tracking-tight mb-2"
-                    style={{ color: 'var(--text-primary)' }}
-                  >
+                  <h3 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827] mb-2">
                     {selectedVehicle.name}
                   </h3>
-                  <p
-                    className="text-[14.5px] leading-[1.6] mb-6"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
+                  <p className="text-[14.5px] leading-[1.65] text-[#4B5563] mb-6">
                     {selectedVehicle.tagline}
                   </p>
 
                   {/* 5-Column Dimension & Payload Telemetry Strip */}
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-                    <div
-                      className="rounded-xl p-3"
-                      style={{
-                        backgroundColor: 'var(--bg-canvas)',
-                        border: '1px solid var(--border-subtle)',
-                      }}
-                    >
-                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] mb-1" style={{ color: 'var(--text-muted)' }}>
+                    <div className="rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] p-3">
+                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280] mb-1">
                         LENGTH
                       </div>
-                      <div className="font-mono-tech text-[15px] font-bold" style={{ color: 'var(--text-primary)' }}>
+                      <div className="font-mono-tech text-[15px] font-bold text-[#111827]">
                         {selectedVehicle.lengthM}
                       </div>
                     </div>
 
-                    <div
-                      className="rounded-xl p-3"
-                      style={{
-                        backgroundColor: 'var(--bg-canvas)',
-                        border: '1px solid var(--border-subtle)',
-                      }}
-                    >
-                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] mb-1" style={{ color: 'var(--text-muted)' }}>
+                    <div className="rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] p-3">
+                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280] mb-1">
                         WIDTH
                       </div>
-                      <div className="font-mono-tech text-[15px] font-bold" style={{ color: 'var(--text-primary)' }}>
+                      <div className="font-mono-tech text-[15px] font-bold text-[#111827]">
                         {selectedVehicle.widthM}
                       </div>
                     </div>
 
-                    <div
-                      className="rounded-xl p-3"
-                      style={{
-                        backgroundColor: 'var(--bg-canvas)',
-                        border: '1px solid var(--border-subtle)',
-                      }}
-                    >
-                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] mb-1" style={{ color: 'var(--text-muted)' }}>
+                    <div className="rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] p-3">
+                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280] mb-1">
                         HEIGHT
                       </div>
-                      <div className="font-mono-tech text-[15px] font-bold" style={{ color: 'var(--text-primary)' }}>
+                      <div className="font-mono-tech text-[15px] font-bold text-[#111827]">
                         {selectedVehicle.heightM}
                       </div>
                     </div>
 
-                    <div
-                      className="rounded-xl p-3"
-                      style={{
-                        backgroundColor: 'var(--bg-canvas)',
-                        border: '1px solid var(--border-subtle)',
-                      }}
-                    >
-                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] mb-1" style={{ color: 'var(--text-muted)' }}>
+                    <div className="rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] p-3">
+                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280] mb-1">
                         PALLETS
                       </div>
-                      <div className="font-mono-tech text-[15px] font-bold text-[#3898FF]">
+                      <div className="font-mono-tech text-[15px] font-bold text-[#2563EB]">
                         {selectedVehicle.pallets}
                       </div>
                     </div>
 
-                    <div
-                      className="rounded-xl p-3 col-span-2 sm:col-span-1"
-                      style={{
-                        backgroundColor: 'var(--bg-canvas)',
-                        border: '1px solid var(--border-subtle)',
-                      }}
-                    >
-                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] mb-1" style={{ color: 'var(--text-muted)' }}>
+                    <div className="rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] p-3 col-span-2 sm:col-span-1">
+                      <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280] mb-1">
                         MAX WEIGHT
                       </div>
-                      <div className="font-mono-tech text-[15px] font-bold text-[#10B981]">
+                      <div className="font-mono-tech text-[15px] font-bold text-[#059669]">
                         {selectedVehicle.maxPayloadLabel}
                       </div>
                     </div>
@@ -506,14 +440,9 @@ export const FleetSpecs: React.FC = () => {
                     {selectedVehicle.idealFor.map((useCase) => (
                       <span
                         key={useCase}
-                        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px]"
-                        style={{
-                          backgroundColor: 'var(--bg-canvas)',
-                          border: '1px solid var(--border-subtle)',
-                          color: 'var(--text-secondary)',
-                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-[#FAFAFA] px-3 py-1.5 text-[12.5px] text-[#4B5563]"
                       >
-                        <CheckCircle2 className="h-3.5 w-3.5 text-[#2E90FA]" aria-hidden="true" />
+                        <CheckCircle2 className="h-3.5 w-3.5 text-[#2563EB]" aria-hidden="true" />
                         <span>{useCase}</span>
                       </span>
                     ))}
@@ -522,16 +451,13 @@ export const FleetSpecs: React.FC = () => {
               </div>
 
               {/* Footer Bar */}
-              <div
-                className="px-6 py-4 flex flex-wrap items-center justify-between gap-3"
-                style={{ borderTop: '1px solid var(--border-subtle)' }}
-              >
-                <span className="font-mono-tech text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
+              <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#FAFAFA]/50 flex flex-wrap items-center justify-between gap-3">
+                <span className="font-mono-tech text-[11px] text-[#6B7280]">
                   LOADING: {selectedVehicle.loadingType.toUpperCase()}
                 </span>
                 <a
                   href={BRAND_CONFIG.portalBookingUrl}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#2E90FA] hover:bg-[#1D7FEA] px-4 py-2 text-[12.5px] font-semibold text-white transition-colors"
+                  className="btn-primary-black inline-flex items-center gap-2 rounded-lg px-4 py-2 text-[12.5px] font-semibold"
                 >
                   <span>Book {selectedVehicle.shortName}</span>
                   <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -544,14 +470,14 @@ export const FleetSpecs: React.FC = () => {
           <ScrollReveal delayMs={195} className="lg:col-span-5 h-full">
             <div className="neo-card rounded-2xl p-6 h-full flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between gap-2 pb-4 mb-5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                <div className="flex items-center justify-between gap-2 pb-4 mb-5 border-b border-[#E5E7EB]">
                   <div className="flex items-center gap-2">
-                    <SlidersHorizontal className="h-4 w-4 text-[#2E90FA]" aria-hidden="true" />
-                    <span className="font-mono-tech text-[11.5px] font-semibold uppercase tracking-[0.09em]" style={{ color: 'var(--text-primary)' }}>
+                    <SlidersHorizontal className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
+                    <span className="font-mono-tech text-[11.5px] font-semibold uppercase tracking-[0.09em] text-[#111827]">
                       INSTANT FLEET &amp; SLA CALCULATOR
                     </span>
                   </div>
-                  <span className="font-mono-tech text-[10.5px] text-[#10B981] uppercase">
+                  <span className="font-mono-tech text-[10.5px] font-semibold text-[#059669] uppercase">
                     LIVE TELEMETRY
                   </span>
                 </div>
@@ -561,8 +487,7 @@ export const FleetSpecs: React.FC = () => {
                   <div>
                     <label
                       htmlFor="calc-origin-hub"
-                      className="block font-mono-tech text-[10.5px] uppercase tracking-[0.08em] mb-1.5"
-                      style={{ color: 'var(--text-secondary)' }}
+                      className="block font-mono-tech text-[10.5px] uppercase tracking-[0.08em] text-[#4B5563] mb-1.5"
                     >
                       Origin Dispatch Hub
                     </label>
@@ -570,12 +495,7 @@ export const FleetSpecs: React.FC = () => {
                       id="calc-origin-hub"
                       value={originHubId}
                       onChange={(e) => setOriginHubId(e.target.value)}
-                      className="w-full rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium"
-                      style={{
-                        backgroundColor: 'var(--bg-canvas)',
-                        border: '1px solid var(--border-subtle)',
-                        color: 'var(--text-primary)',
-                      }}
+                      className="w-full rounded-lg border border-[#E5E7EB] bg-[#FAFAFA] px-3.5 py-2.5 text-[13.5px] font-medium text-[#111827]"
                     >
                       {DISPATCH_HUBS.map((hub) => (
                         <option key={hub.id} value={hub.id}>
@@ -588,8 +508,7 @@ export const FleetSpecs: React.FC = () => {
                   <div>
                     <label
                       htmlFor="calc-dest-city"
-                      className="block font-mono-tech text-[10.5px] uppercase tracking-[0.08em] mb-1.5"
-                      style={{ color: 'var(--text-secondary)' }}
+                      className="block font-mono-tech text-[10.5px] uppercase tracking-[0.08em] text-[#4B5563] mb-1.5"
                     >
                       Destination Corridor
                     </label>
@@ -597,12 +516,7 @@ export const FleetSpecs: React.FC = () => {
                       id="calc-dest-city"
                       value={destinationCity}
                       onChange={(e) => setDestinationCity(e.target.value)}
-                      className="w-full rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium"
-                      style={{
-                        backgroundColor: 'var(--bg-canvas)',
-                        border: '1px solid var(--border-subtle)',
-                        color: 'var(--text-primary)',
-                      }}
+                      className="w-full rounded-lg border border-[#E5E7EB] bg-[#FAFAFA] px-3.5 py-2.5 text-[13.5px] font-medium text-[#111827]"
                     >
                       <option value="Birmingham">Birmingham</option>
                       <option value="Manchester">Manchester</option>
@@ -620,13 +534,12 @@ export const FleetSpecs: React.FC = () => {
                   <div className="flex items-center justify-between mb-1.5">
                     <label
                       htmlFor="calc-pallets"
-                      className="flex items-center gap-1.5 font-mono-tech text-[11px] uppercase tracking-[0.08em]"
-                      style={{ color: 'var(--text-secondary)' }}
+                      className="flex items-center gap-1.5 font-mono-tech text-[11px] uppercase tracking-[0.08em] text-[#4B5563]"
                     >
-                      <Package className="h-3.5 w-3.5 text-[#2E90FA]" aria-hidden="true" />
+                      <Package className="h-3.5 w-3.5 text-[#2563EB]" aria-hidden="true" />
                       <span>Standard Pallets</span>
                     </label>
-                    <span className="font-mono-tech text-[13px] font-bold text-[#3898FF]">
+                    <span className="font-mono-tech text-[13px] font-bold text-[#2563EB]">
                       {palletCount} {palletCount === 1 ? 'Pallet' : 'Pallets'}
                     </span>
                   </div>
@@ -649,7 +562,7 @@ export const FleetSpecs: React.FC = () => {
                       });
                       setSelectedVehicleId(matched.recommendedVehicle.id);
                     }}
-                    className="w-full accent-[#2E90FA] cursor-pointer"
+                    className="w-full accent-[#111827] cursor-pointer"
                   />
                 </div>
 
@@ -658,13 +571,12 @@ export const FleetSpecs: React.FC = () => {
                   <div className="flex items-center justify-between mb-1.5">
                     <label
                       htmlFor="calc-weight"
-                      className="flex items-center gap-1.5 font-mono-tech text-[11px] uppercase tracking-[0.08em]"
-                      style={{ color: 'var(--text-secondary)' }}
+                      className="flex items-center gap-1.5 font-mono-tech text-[11px] uppercase tracking-[0.08em] text-[#4B5563]"
                     >
-                      <Weight className="h-3.5 w-3.5 text-[#2E90FA]" aria-hidden="true" />
+                      <Weight className="h-3.5 w-3.5 text-[#2563EB]" aria-hidden="true" />
                       <span>Total Payload Weight</span>
                     </label>
-                    <span className="font-mono-tech text-[13px] font-bold text-[#3898FF]">
+                    <span className="font-mono-tech text-[13px] font-bold text-[#2563EB]">
                       {weightKg} kg
                     </span>
                   </div>
@@ -688,7 +600,7 @@ export const FleetSpecs: React.FC = () => {
                       });
                       setSelectedVehicleId(matched.recommendedVehicle.id);
                     }}
-                    className="w-full accent-[#2E90FA] cursor-pointer"
+                    className="w-full accent-[#111827] cursor-pointer"
                   />
                 </div>
 
@@ -711,30 +623,28 @@ export const FleetSpecs: React.FC = () => {
                       });
                       setSelectedVehicleId(matched.recommendedVehicle.id);
                     }}
-                    className="w-full flex items-center justify-between rounded-xl px-4 py-3 text-left transition-colors cursor-pointer"
-                    style={{
-                      backgroundColor: 'var(--bg-canvas)',
-                      border: requiresTailLift
-                        ? '1px solid rgba(46, 144, 250, 0.5)'
-                        : '1px solid var(--border-subtle)',
-                    }}
+                    className={`w-full flex items-center justify-between rounded-xl px-4 py-3 text-left transition-colors cursor-pointer border ${
+                      requiresTailLift
+                        ? 'bg-[#EFF6FF]/60 border-[#BFDBFE]'
+                        : 'bg-[#FAFAFA] border-[#E5E7EB]'
+                    }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Maximize className="h-4 w-4 text-[#2E90FA]" aria-hidden="true" />
+                      <Maximize className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
                       <div>
-                        <div className="text-[13.5px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                        <div className="text-[13.5px] font-semibold text-[#111827]">
                           Hydraulic Tail-Lift &amp; Pump Truck
                         </div>
-                        <div className="text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
+                        <div className="text-[11.5px] text-[#6B7280]">
                           Required if collection/delivery site has no forklift
                         </div>
                       </div>
                     </div>
                     <span
-                      className={`font-mono-tech text-[11px] font-semibold px-2.5 py-1 rounded-full ${
+                      className={`font-mono-tech text-[11px] font-semibold px-2.5 py-1 rounded-md ${
                         requiresTailLift
-                          ? 'bg-[#2E90FA]/20 text-[#3898FF]'
-                          : 'text-[var(--text-muted)]'
+                          ? 'bg-[#111827] text-white'
+                          : 'bg-[#F3F4F6] text-[#6B7280]'
                       }`}
                     >
                       {requiresTailLift ? 'REQUIRED' : 'OPTIONAL'}
@@ -744,39 +654,26 @@ export const FleetSpecs: React.FC = () => {
               </div>
 
               {/* Matched Vehicle Telemetry Output */}
-              <div
-                className="rounded-xl p-4"
-                style={{
-                  backgroundColor: 'var(--bg-canvas)',
-                  border: '1px solid var(--border-subtle)',
-                }}
-              >
+              <div className="rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono-tech text-[10.5px] uppercase tracking-[0.09em]" style={{ color: 'var(--text-muted)' }}>
+                  <span className="font-mono-tech text-[10.5px] uppercase tracking-[0.09em] text-[#6B7280]">
                     RECOMMENDED ALLOCATION
                   </span>
-                  <span
-                    className="font-mono-tech text-[10.5px] font-semibold px-2 py-0.5 rounded-full"
-                    style={{
-                      color: 'var(--status-green)',
-                      backgroundColor: 'var(--status-green-bg)',
-                      border: '1px solid var(--status-green-border)',
-                    }}
-                  >
+                  <span className="font-mono-tech text-[10.5px] font-semibold text-[#059669]">
                     COLLECTION ≤ {dispatchEstimate.estimatedCollectionMins} MIN
                   </span>
                 </div>
 
-                <div className="text-[17px] font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+                <div className="text-[17px] font-bold text-[#111827] mb-1">
                   {dispatchEstimate.recommendedVehicle.name}
                 </div>
-                <div className="font-mono-tech text-[11.5px] mb-4" style={{ color: 'var(--text-secondary)' }}>
+                <div className="font-mono-tech text-[11.5px] text-[#4B5563] mb-4">
                   {dispatchEstimate.dispatchSummary}
                 </div>
 
                 <a
-                  href={BRAND_CONFIG.portalBookingUrl}
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#2E90FA] hover:bg-[#1D7FEA] px-5 text-[13.5px] font-semibold text-white transition-colors"
+                  href={dispatchEstimate.portalBookingHref}
+                  className="btn-primary-black flex h-11 w-full items-center justify-center gap-2 rounded-lg px-5 text-[13.5px] font-semibold"
                 >
                   <span>Book {dispatchEstimate.recommendedVehicle.shortName}</span>
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />

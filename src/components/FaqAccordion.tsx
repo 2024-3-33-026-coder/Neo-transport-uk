@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, Phone, ArrowUpRight } from 'lucide-react';
+import { Plus, X, Phone, ArrowUpRight } from 'lucide-react';
 import { BRAND_CONFIG, FAQ_ITEMS } from '../data/siteContent';
 import { ScrollReveal } from './MotionPrimitives';
 
@@ -14,27 +14,22 @@ export const FaqAccordion: React.FC = () => {
     <section
       id="faq"
       aria-labelledby="faq-heading"
-      className="py-16 sm:py-20 lg:py-24 scroll-mt-16"
-      style={{ borderBottom: '1px solid var(--border-subtle)' }}
+      className="py-20 sm:py-28 bg-[#FAFAFA] border-b border-[#E5E7EB] scroll-mt-16"
     >
-      <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1160px] px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
-          {/* Left 5 Cols: FAQ Heading & Direct Dispatch Escalation Card */}
+          {/* Left 5 Cols: FAQ Heading & Direct Dispatch Escalation Card (mirrors Advertz.ai split FAQ layout) */}
           <ScrollReveal className="lg:col-span-5">
-            <div className="font-mono-tech text-[12px] font-semibold uppercase tracking-[0.12em] text-[#3898FF] mb-3">
-              — OPERATIONAL FAQ
+            <div className="inline-flex items-center gap-2 mb-3.5">
+              <span className="h-1.5 w-1.5 rounded-[2px] bg-[#2563EB]" aria-hidden="true" />
+              <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2563EB]">
+                OPERATIONAL FAQ
+              </span>
             </div>
-            <h2
-              id="faq-heading"
-              className="section-h2 mb-4"
-              style={{ color: 'var(--text-primary)' }}
-            >
+            <h2 id="faq-heading" className="section-h2 text-[#111827] mb-4">
               Frequently Asked Questions
             </h2>
-            <p
-              className="text-[16px] leading-[1.6] mb-8"
-              style={{ color: 'var(--text-secondary)' }}
-            >
+            <p className="text-[16px] leading-[1.65] text-[#4B5563] mb-8">
               Clear answers on same-day collection SLAs, how our £0 Emergency Standby Account works,
               European customs coordination, and real-time portal telemetry.
             </p>
@@ -43,62 +38,46 @@ export const FaqAccordion: React.FC = () => {
             <div className="neo-card rounded-2xl p-6">
               <div className="flex items-center gap-2 mb-3">
                 <span className="h-2 w-2 rounded-full bg-[#10B981] telemetry-dot" aria-hidden="true" />
-                <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.1em] text-[#10B981]">
+                <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.1em] text-[#059669]">
                   DISPATCH DESK ONLINE • 24/7/365
                 </span>
               </div>
-              <h3
-                className="text-[17px] font-bold mb-2"
-                style={{ color: 'var(--text-primary)' }}
-              >
+              <h3 className="text-[17px] font-bold text-[#111827] mb-2">
                 Need immediate same-day collection or custom contract rates?
               </h3>
-              <p
-                className="text-[13.5px] leading-[1.6] mb-5"
-                style={{ color: 'var(--text-secondary)' }}
-              >
+              <p className="text-[13.5px] leading-[1.6] text-[#4B5563] mb-5">
                 Speak directly with a NEO Transport controller in under 3 minutes or book your
                 delivery online.
               </p>
               <div className="flex flex-wrap gap-3">
                 <a
                   href={BRAND_CONFIG.dispatchPhoneHref}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#2E90FA] hover:bg-[#1D7FEA] px-4 py-2.5 text-[13px] font-semibold text-white transition-colors"
+                  className="btn-primary-black inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-[13px] font-semibold"
                 >
                   <Phone className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>{BRAND_CONFIG.dispatchPhoneDisplay}</span>
                 </a>
                 <a
                   href={BRAND_CONFIG.portalBookingUrl}
-                  className="inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[13px] font-semibold transition-colors"
-                  style={{
-                    backgroundColor: 'var(--bg-canvas)',
-                    border: '1px solid var(--border-subtle)',
-                    color: 'var(--text-primary)',
-                  }}
+                  className="btn-secondary-light inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-[13px] font-semibold"
                 >
                   <span>Book a Delivery</span>
-                  <ArrowUpRight className="h-3.5 w-3.5 text-[#3898FF]" aria-hidden="true" />
+                  <ArrowUpRight className="h-3.5 w-3.5 text-[#2563EB]" aria-hidden="true" />
                 </a>
               </div>
             </div>
           </ScrollReveal>
 
-          {/* Right 7 Cols: 7 Verified Accordion Items with 75ms stagger */}
-          <div className="lg:col-span-7 space-y-3">
-            {FAQ_ITEMS.map((item, idx) => {
-              const isOpen = openId === item.id;
-              const panelId = `${item.id}-panel`;
-              const triggerId = `${item.id}-trigger`;
+          {/* Right 7 Cols: Single Bordered Divider Accordion List matching Advertz.ai */}
+          <ScrollReveal delayMs={75} className="lg:col-span-7">
+            <div className="rounded-2xl border border-[#E5E7EB] bg-white divide-y divide-[#E5E7EB] overflow-hidden">
+              {FAQ_ITEMS.map((item) => {
+                const isOpen = openId === item.id;
+                const panelId = `${item.id}-panel`;
+                const triggerId = `${item.id}-trigger`;
 
-              return (
-                <ScrollReveal key={item.id} delayMs={idx * 75}>
-                  <div
-                    className="neo-card rounded-2xl overflow-hidden transition-colors"
-                    style={{
-                      borderColor: isOpen ? 'rgba(46, 144, 250, 0.45)' : 'var(--border-subtle)',
-                    }}
-                  >
+                return (
+                  <div key={item.id}>
                     <h3>
                       <button
                         id={triggerId}
@@ -106,26 +85,22 @@ export const FaqAccordion: React.FC = () => {
                         aria-expanded={isOpen}
                         aria-controls={panelId}
                         onClick={() => toggleItem(item.id)}
-                        className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition-colors cursor-pointer"
+                        className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left hover:bg-[#FAFAFA] transition-colors cursor-pointer"
                       >
                         <div className="flex items-center gap-3.5">
-                          <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.08em] text-[#3898FF] shrink-0">
+                          <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.08em] text-[#2563EB] shrink-0">
                             {item.code}
                           </span>
-                          <span
-                            className="text-[15.5px] sm:text-[16.5px] font-semibold"
-                            style={{ color: 'var(--text-primary)' }}
-                          >
+                          <span className="text-[15px] sm:text-[16px] font-semibold text-[#111827]">
                             {item.question}
                           </span>
                         </div>
 
-                        <ChevronDown
-                          className={`h-5 w-5 shrink-0 text-[#3898FF] transition-transform duration-200 ${
-                            isOpen ? 'rotate-180' : ''
-                          }`}
-                          aria-hidden="true"
-                        />
+                        {isOpen ? (
+                          <X className="h-4 w-4 shrink-0 text-[#6B7280]" aria-hidden="true" />
+                        ) : (
+                          <Plus className="h-4 w-4 shrink-0 text-[#6B7280]" aria-hidden="true" />
+                        )}
                       </button>
                     </h3>
 
@@ -136,21 +111,15 @@ export const FaqAccordion: React.FC = () => {
                       hidden={!isOpen}
                       className={isOpen ? 'block' : 'hidden'}
                     >
-                      <div
-                        className="px-6 pb-5 pt-1 text-[14.5px] leading-[1.65]"
-                        style={{
-                          color: 'var(--text-secondary)',
-                          borderTop: '1px solid var(--border-subtle)',
-                        }}
-                      >
-                        <p className="pt-3">{item.answer}</p>
+                      <div className="px-6 pb-5 pt-0 text-[14.5px] leading-[1.65] text-[#4B5563]">
+                        <p>{item.answer}</p>
                       </div>
                     </div>
                   </div>
-                </ScrollReveal>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </ScrollReveal>
         </div>
       </div>
     </section>
