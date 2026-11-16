@@ -36,6 +36,8 @@ export interface Profile {
   initials: string;
   email: string;
   role: 'customer' | 'admin';
+  status?: 'active' | 'suspended';
+  created_at?: string;
 }
 
 export interface BookingRow {
@@ -58,6 +60,10 @@ export interface BookingRow {
   distance_miles: number;
   total_gbp: number;
   payment_method: string;
+  payment_status?: string;
+  amount_paid_gbp?: number;
+  paid_at?: string | null;
+  stripe_payment_intent_id?: string | null;
   po_reference: string;
   eta_label: string;
   status: 'Scheduled' | 'In transit' | 'Delivered' | 'Cancelled';
@@ -65,6 +71,8 @@ export interface BookingRow {
   driver_vehicle?: string;
   driver_reg?: string;
   progress_t: number;
+  pickup_tracking_url?: string;
+  delivery_tracking_url?: string;
 }
 
 export interface QuoteRow {
@@ -107,4 +115,25 @@ export interface SupportTicketRow {
   message: string;
   status: 'Open' | 'In Progress' | 'Resolved';
   created_at: string;
+}
+
+export interface AdminAuditLog {
+  id: string;
+  admin_id?: string | null;
+  admin_email: string;
+  admin_name: string;
+  action: string;
+  target_entity: string;
+  target_id?: string | null;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface ProfileWithCompany extends Profile {
+  companies?: Company | null;
+}
+
+export interface CompanyDetails extends Company {
+  user_count?: number;
+  active_bookings_count?: number;
 }

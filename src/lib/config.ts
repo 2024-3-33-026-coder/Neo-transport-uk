@@ -23,8 +23,13 @@ export const CONTACT_CONFIG = {
     birminghamTel: 'tel:+441215582845',
     manchester: '0161 820 4492',
     manchesterTel: 'tel:+441618204492',
-    warrington: '01925 800 999',
-    warringtonTel: 'tel:+441925800999',
+    // Official Aircall Operations Desk (HQ)
+    aircallHq: '+44 1925 986076',
+    aircallHqNational: '01925 986076',
+    aircallHqTel: 'tel:+441925986076',
+
+    warrington: '01925 986076',
+    warringtonTel: 'tel:+441925986076',
   },
   email: {
     dispatch: 'dispatch@neotransport.co.uk',

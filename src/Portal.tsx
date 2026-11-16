@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { DashboardView } from './components/views/DashboardView';
@@ -9,6 +9,7 @@ import { QuotesView } from './components/views/QuotesView';
 import { InvoicesView } from './components/views/InvoicesView';
 import { DocumentsView } from './components/views/DocumentsView';
 import { SupportView } from './components/views/SupportView';
+import { MobileBottomNav } from './components/ui/MobileBottomNav';
 import {
   INITIAL_BOOKINGS,
   INITIAL_QUOTES,
@@ -17,14 +18,21 @@ import {
 } from './data/mockData';
 import { ViewMode, Booking, Quote, DocumentItem, BookingWizardState, Invoice } from './types';
 import {
+  InAppNotification,
+  getStoredBookings,
   getPersistedBookings,
   persistBooking,
+  getStoredFailedBookingDraft,
+  clearFailedBookingDraft,
+  getStoredQuotes,
   getPersistedQuotes,
   fetchPersistedQuotes,
   persistQuotes,
   addQuote,
+  getStoredInvoices,
   getPersistedInvoices,
   fetchPersistedInvoices,
+  getStoredDocuments,
   getPersistedDocuments,
   fetchPersistedDocuments,
   addDocument,
@@ -35,6 +43,8 @@ import {
   persistWizardDraft,
   deleteQuote,
   INITIAL_WIZARD_DRAFT,
+  mapBookingRowToBooking,
+  syncRealtimeBookingUpdate,
 } from './lib/portalStore';
 import { AdminPortal } from './AdminPortal';
 import {
@@ -54,11 +64,15 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import {
+  supabase,
   authenticateCustomer,
   requestPasswordReset,
   signOutUser,
   getCurrentSessionProfile,
   isSupabaseConfigured,
+  isDemoModeAllowed,
+  isStagingDemoAvailable,
+  DEMO_CREDENTIALS,
   DEFAULT_PROFILE,
   DEFAULT_COMPANY,
 } from './lib/supabase';
@@ -98,8 +112,8 @@ export const Portal: React.FC<PortalProps> = ({
   initialLoggedIn = false,
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(initialLoggedIn);
-  const [email, setEmail] = useState('chris@meridian.co.uk');
-  const [password, setPassword] = useState('••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [loginLoading, setLoginLoading] = useState<boolean>(false);
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -124,20 +138,22 @@ export const Portal: React.FC<PortalProps> = ({
   });
 
   const [portalMode, setPortalMode] = useState<'customer' | 'admin'>('customer');
-  const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
-  const [bookings, setBookings] = useState<Booking[]>(() => {
-    try {
-      const raw = localStorage.getItem('neo_portal_bookings');
-      return raw ? JSON.parse(raw) : INITIAL_BOOKINGS;
-    } catch {
-      return INITIAL_BOOKINGS;
+  const [currentView, setCurrentView] = useState<ViewMode>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('payment') || params.get('bookingId')) {
+        return 'new-booking';
+      }
     }
+    return 'dashboard';
   });
-  const [quotes, setQuotes] = useState<Quote[]>(() => getPersistedQuotes());
-  const [invoices, setInvoices] = useState<Invoice[]>(() => getPersistedInvoices());
-  const [documents, setDocuments] = useState<DocumentItem[]>(() => getPersistedDocuments());
+  const [bookings, setBookings] = useState<Booking[]>(() => getStoredBookings());
+  const [quotes, setQuotes] = useState<Quote[]>(() => getStoredQuotes());
+  const [invoices, setInvoices] = useState<Invoice[]>(() => getStoredInvoices());
+  const [documents, setDocuments] = useState<DocumentItem[]>(() => getStoredDocuments());
   const [activeTrackingBookingId, setActiveTrackingBookingId] = useState<string>(() => getPersistedActiveTrackingId());
   const [wizardState, setWizardState] = useState<BookingWizardState>(() => getPersistedWizardDraft());
+  const [bookingPersistenceError, setBookingPersistenceError] = useState<string | null>(null);
   const [podHighlightRef, setPodHighlightRef] = useState<string | undefined>(undefined);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -163,34 +179,43 @@ export const Portal: React.FC<PortalProps> = ({
     }
   }, []);
 
+  // Guard against unauthorized client-side state manipulation to admin mode
+  useEffect(() => {
+    if (portalMode === 'admin' && userProfile.role !== 'admin') {
+      setPortalMode('customer');
+    }
+  }, [portalMode, userProfile.role]);
+
   // Sync bookings, quotes, invoices, and documents from Supabase & listen for cross-portal sync
   useEffect(() => {
-    getPersistedBookings().then((fetched) => {
-      if (fetched && fetched.length > 0) {
+    const targetCompId = portalMode === 'admin' ? undefined : userProfile.company_id;
+    getPersistedBookings(targetCompId).then((fetched) => {
+      if (fetched) {
         setBookings(fetched);
       }
     });
-    fetchPersistedQuotes().then((q) => {
-      if (q && q.length > 0) setQuotes(q);
+    fetchPersistedQuotes(targetCompId).then((q) => {
+      if (q) setQuotes(q);
     });
-    fetchPersistedInvoices().then((inv) => {
-      if (inv && inv.length > 0) setInvoices(inv);
+    fetchPersistedInvoices(targetCompId).then((inv) => {
+      if (inv) setInvoices(inv);
     });
-    fetchPersistedDocuments().then((docs) => {
-      if (docs && docs.length > 0) setDocuments(docs);
+    fetchPersistedDocuments(targetCompId).then((docs) => {
+      if (docs) setDocuments(docs);
     });
 
     const handleSync = () => {
-      getPersistedBookings().then((fetched) => {
+      const compId = portalMode === 'admin' ? undefined : userProfile.company_id;
+      getPersistedBookings(compId).then((fetched) => {
         if (fetched) setBookings(fetched);
       });
-      fetchPersistedQuotes().then((q) => {
+      fetchPersistedQuotes(compId).then((q) => {
         if (q) setQuotes(q);
       });
-      fetchPersistedInvoices().then((inv) => {
+      fetchPersistedInvoices(compId).then((inv) => {
         if (inv) setInvoices(inv);
       });
-      fetchPersistedDocuments().then((docs) => {
+      fetchPersistedDocuments(compId).then((docs) => {
         if (docs) setDocuments(docs);
       });
     };
@@ -199,7 +224,48 @@ export const Portal: React.FC<PortalProps> = ({
     return () => {
       window.removeEventListener('neo_portal_sync', handleSync);
     };
-  }, []);
+  }, [isAuthenticated, userProfile.company_id, portalMode]);
+
+  // Scope data strictly to current user's company (unless Admin)
+  const scopedBookings = useMemo(() => {
+    if (portalMode === 'admin') return bookings;
+    const compId = userProfile.company_id;
+    if (!compId) return [];
+    if (compId === DEFAULT_COMPANY.id) {
+      return bookings.filter((b) => !b.company_id || b.company_id === DEFAULT_COMPANY.id);
+    }
+    return bookings.filter((b) => b.company_id === compId);
+  }, [bookings, portalMode, userProfile.company_id]);
+
+  const scopedQuotes = useMemo(() => {
+    if (portalMode === 'admin') return quotes;
+    const compId = userProfile.company_id;
+    if (!compId) return [];
+    if (compId === DEFAULT_COMPANY.id) {
+      return quotes.filter((q) => !q.company_id || q.company_id === DEFAULT_COMPANY.id);
+    }
+    return quotes.filter((q) => q.company_id === compId);
+  }, [quotes, portalMode, userProfile.company_id]);
+
+  const scopedInvoices = useMemo(() => {
+    if (portalMode === 'admin') return invoices;
+    const compId = userProfile.company_id;
+    if (!compId) return [];
+    if (compId === DEFAULT_COMPANY.id) {
+      return invoices.filter((i) => !i.company_id || i.company_id === DEFAULT_COMPANY.id);
+    }
+    return invoices.filter((i) => i.company_id === compId);
+  }, [invoices, portalMode, userProfile.company_id]);
+
+  const scopedDocuments = useMemo(() => {
+    if (portalMode === 'admin') return documents;
+    const compId = userProfile.company_id;
+    if (!compId) return [];
+    if (compId === DEFAULT_COMPANY.id) {
+      return documents.filter((d) => !d.company_id || d.company_id === DEFAULT_COMPANY.id);
+    }
+    return documents.filter((d) => d.company_id === compId);
+  }, [documents, portalMode, userProfile.company_id]);
 
   // Handle Login with Supabase / Fallback
   const handleLogin = async (e: React.FormEvent) => {
@@ -257,6 +323,10 @@ export const Portal: React.FC<PortalProps> = ({
     await signOutUser();
     setIsAuthenticated(false);
     setPortalMode('customer');
+    setBookings([]);
+    setQuotes([]);
+    setInvoices([]);
+    setDocuments([]);
   };
 
   // Update wizard state with persistence
@@ -283,12 +353,26 @@ export const Portal: React.FC<PortalProps> = ({
   };
 
   // New Booking Created: real persistence to Supabase and local cache
-  const handleBookingCreated = async (newBooking: Booking, finalWizardState?: BookingWizardState) => {
+  const handleBookingCreated = async (newBooking: Booking, finalWizardState?: BookingWizardState): Promise<Booking> => {
     const draft = finalWizardState || wizardState;
-    await persistBooking(newBooking, draft, userProfile.company_id);
-    setBookings((prev) => [newBooking, ...prev.filter((b) => b.id !== newBooking.id && b.reference !== newBooking.reference)]);
-    setActiveTrackingBookingId(newBooking.id);
-    persistActiveTrackingId(newBooking.id);
+    setBookingPersistenceError(null);
+    try {
+      const saved = await persistBooking(newBooking, draft, userProfile.company_id);
+      setBookings((prev) => [saved, ...prev.filter((b) => b.id !== saved.id && b.reference !== saved.reference)]);
+      setActiveTrackingBookingId(saved.id);
+      persistActiveTrackingId(saved.id);
+      setBookingPersistenceError(null);
+      return saved;
+    } catch (err: any) {
+      const errorMsg = err instanceof Error ? err.message : String(err || 'Failed to save booking to dispatch database');
+      console.error('[NEO Portal] Booking persistence failed:', errorMsg);
+      setBookingPersistenceError(errorMsg);
+      if (draft) {
+        setWizardState(draft);
+        persistWizardDraft(draft);
+      }
+      throw err;
+    }
   };
 
   // Track live shipment action
@@ -305,6 +389,63 @@ export const Portal: React.FC<PortalProps> = ({
     setWizardState(INITIAL_WIZARD_DRAFT);
     persistWizardDraft(INITIAL_WIZARD_DRAFT);
   };
+
+  // Realtime booking update handler (immutable React state update)
+  const handleBookingUpdated = React.useCallback((rawOrMapped: any) => {
+    if (!rawOrMapped) return;
+    setBookings((prev) => {
+      const targetId = rawOrMapped.id || rawOrMapped.reference;
+      const existing = prev.find(
+        (b) => b.id === targetId || b.reference === targetId
+      );
+      const isAlreadyBooking = 'cargo' in rawOrMapped && 'date' in rawOrMapped;
+      const mapped = isAlreadyBooking
+        ? (rawOrMapped as Booking)
+        : mapBookingRowToBooking(rawOrMapped, existing);
+
+      const merged = existing ? { ...existing, ...mapped } : mapped;
+      syncRealtimeBookingUpdate(merged);
+
+      const exists = prev.some(
+        (b) => b.id === merged.id || b.reference === merged.reference
+      );
+      if (exists) {
+        return prev.map((b) =>
+          b.id === merged.id || b.reference === merged.reference ? merged : b
+        );
+      }
+      return [merged, ...prev];
+    });
+  }, []);
+
+  // Supabase Realtime Subscription for company bookings
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase || !userProfile.company_id) return;
+
+    const channel = supabase
+      .channel(`customer-bookings-${userProfile.company_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'bookings',
+          filter: `company_id=eq.${userProfile.company_id}`,
+        },
+        (payload) => {
+          if (payload.new) {
+            handleBookingUpdated(payload.new);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (supabase) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [userProfile.company_id, handleBookingUpdated]);
 
   // Quotes actions
   const handleAcceptQuote = async (quote: Quote) => {
@@ -345,9 +486,10 @@ export const Portal: React.FC<PortalProps> = ({
 
   // Active tracking booking object
   const activeTrackingBooking =
-    bookings.find((b) => b.id === activeTrackingBookingId || b.reference === activeTrackingBookingId) ||
-    bookings.find((b) => b.status === 'IN TRANSIT') ||
-    bookings[0];
+    scopedBookings.find((b: Booking) => b.id === activeTrackingBookingId || b.reference === activeTrackingBookingId) ||
+    scopedBookings.find((b: Booking) => b.status === 'IN TRANSIT') ||
+    scopedBookings[0] ||
+    undefined;
 
   // 1. IF NOT LOGGED IN: Render Login Screen (Matching Screenshot 1)
   if (!isAuthenticated) {
@@ -358,44 +500,50 @@ export const Portal: React.FC<PortalProps> = ({
         }`}
       >
         {/* Top bar on Login Screen */}
-        <header className="w-full px-6 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 relative flex items-center justify-center">
-              <svg viewBox="0 0 32 32" className="w-8 h-8 fill-none">
-                <path d="M6 10L14 4L18 7L10 13L6 10Z" fill="#3898EC" />
-                <path d="M14 28L22 22L26 25L18 31L14 28Z" fill="#3898EC" />
-                <path d="M10 13L18 7L26 13L18 19L10 13Z" fill="#2b85d6" />
-                <path d="M6 19L14 13L18 16L10 22L6 19Z" fill="#3898EC" />
-                <path d="M14 19L22 13L26 16L18 22L14 19Z" fill="#60a5fa" />
-              </svg>
-            </div>
-            <span className="font-extrabold tracking-tight text-lg uppercase font-sans">
-              NEO TRANSPORT
-            </span>
+        <header className="w-full px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
+          <div className="flex items-center shrink-0">
+            {/* Mobile: icon only */}
+            <img
+              src="/brand/logos/neo-transport-icon-blue.svg"
+              alt="NEO Transport"
+              className="sm:hidden h-6.5 w-auto object-contain shrink-0"
+              style={{ aspectRatio: '267.04 / 191.82' }}
+            />
+            {/* Desktop: full official logo */}
+            <img
+              src={
+                isDarkMode
+                  ? '/brand/logos/neo-transport-full-blue-white.svg'
+                  : '/brand/logos/neo-transport-full-blue-navy.svg'
+              }
+              alt="NEO TRANSPORT"
+              className="hidden sm:block w-[170px] md:w-[195px] h-auto object-contain shrink-0"
+              style={{ aspectRatio: '1310.75 / 191.82' }}
+            />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5">
             {/* Theme switcher */}
             <div
-              className={`flex items-center p-0.5 rounded-full border ${
+              className={`flex items-center p-1 rounded-full border transition-colors ${
                 isDarkMode
-                  ? 'bg-[#0b121c] border-slate-700/60'
-                  : 'bg-slate-200/60 border-slate-300'
+                  ? 'bg-[#111827] border-[#1e293b]'
+                  : 'bg-slate-100/80 border-slate-200'
               }`}
             >
               <button
-                onClick={onToggleTheme}
-                className={`p-1.5 rounded-full transition-all ${
-                  !isDarkMode ? 'bg-white text-amber-500 shadow-xs' : 'text-slate-400'
+                onClick={isDarkMode ? onToggleTheme : undefined}
+                className={`p-1.5 rounded-full transition-all cursor-pointer ${
+                  !isDarkMode ? 'bg-white text-slate-900 shadow-advertz' : 'text-slate-400 hover:text-slate-200'
                 }`}
                 title="Light mode"
               >
                 <Sun className="w-3.5 h-3.5" />
               </button>
               <button
-                onClick={onToggleTheme}
-                className={`p-1.5 rounded-full transition-all ${
-                  isDarkMode ? 'bg-slate-800 text-sky-400 shadow-xs' : 'text-slate-400'
+                onClick={!isDarkMode ? onToggleTheme : undefined}
+                className={`p-1.5 rounded-full transition-all cursor-pointer ${
+                  isDarkMode ? 'bg-[#1e293b] text-slate-100 shadow-sm' : 'text-slate-500 hover:text-slate-900'
                 }`}
                 title="Dark mode"
               >
@@ -405,10 +553,10 @@ export const Portal: React.FC<PortalProps> = ({
 
             <button
               onClick={onBackToLanding}
-              className={`text-xs font-semibold px-4 py-2 rounded-full transition-colors ${
+              className={`text-xs font-medium px-4 py-1.5 rounded-full border transition-all cursor-pointer ${
                 isDarkMode
-                  ? 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                  ? 'border-[#1e293b] text-slate-300 hover:text-white hover:bg-[#1e293b]'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-advertz'
               }`}
             >
               Back to site
@@ -417,43 +565,70 @@ export const Portal: React.FC<PortalProps> = ({
         </header>
 
         {/* Center Card */}
-        <main className="flex-1 flex items-center justify-center p-4">
+        <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
           <div className="w-full max-w-md">
             <div className="text-center mb-6">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="w-4 h-0.5 bg-[#3898EC]" />
-                <span className="font-mono text-xs uppercase tracking-widest text-[#3898EC] font-semibold">
-                  CUSTOMER LOGIN
-                </span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-blue-600 bg-blue-50/80 border border-blue-200/60 mb-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                <span>Customer portal</span>
               </div>
               <h1
-                className={`text-3xl font-extrabold tracking-tight ${
+                className={`text-2xl sm:text-3xl font-bold tracking-tight ${
                   isDarkMode ? 'text-white' : 'text-slate-900'
                 }`}
               >
                 Welcome back
               </h1>
-              <p className="text-xs text-slate-400 mt-1.5">
-                Sign in to your NEO TRANSPORT standby account.
+              <p
+                className={`text-xs sm:text-sm mt-1.5 leading-relaxed ${
+                  isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}
+              >
+                Sign in to your NEO standby account.
               </p>
             </div>
 
             <div
-              className={`p-7 rounded-3xl border shadow-xl transition-all ${
+              className={`p-7 sm:p-9 rounded-3xl border transition-all ${
                 isDarkMode
-                  ? 'bg-[#0b121c] border-[#172334]'
-                  : 'bg-white border-slate-200'
+                  ? 'bg-[#111827] border-[#1e293b] shadow-xl'
+                  : 'bg-white border-slate-200/80 shadow-advertz-lg'
               }`}
             >
+              {/* Environment Status Banners */}
+              {!isSupabaseConfigured && isDemoModeAllowed && (
+                <div className="mb-4 p-3 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-300 text-xs flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-sky-400" />
+                  <div>
+                    <span className="font-semibold text-xs text-sky-400 block">Demo mode active</span>
+                    <span className="text-[11px] text-slate-300 leading-relaxed block mt-0.5">
+                      Database disconnected. Click quick demo credentials below to test customer or dispatch admin access.
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {!isSupabaseConfigured && !isDemoModeAllowed && (
+                <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+                  <div>
+                    <span className="font-semibold text-xs text-rose-400 block">Authentication unavailable</span>
+                    <span className="text-[11px] text-slate-300 leading-relaxed block mt-0.5">
+                      Production database connection required. Demo mode is disabled in production environments.
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {loginError && (
-                <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-start gap-2">
+                <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{loginError}</span>
                 </div>
               )}
 
               {resetStatus && (
-                <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-start gap-2">
+                <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{resetStatus}</span>
                 </div>
@@ -461,32 +636,41 @@ export const Portal: React.FC<PortalProps> = ({
 
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                  <label
+                    className={`block text-xs font-medium mb-1.5 ${
+                      isDarkMode ? 'text-slate-300' : 'text-slate-700'
+                    }`}
+                  >
                     Work email
                   </label>
                   <input
                     type="email"
                     required
+                    placeholder="name@company.co.uk"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium transition-colors ${
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all outline-none ${
                       isDarkMode
-                        ? 'bg-[#060b11] border-[#1a2636] text-white focus:border-[#3898EC]'
-                        : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#3898EC]'
+                        ? 'bg-[#0b0f19] border-[#1e293b] text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                        : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 shadow-advertz'
                     }`}
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-medium text-slate-400">
+                    <label
+                      className={`text-xs font-medium ${
+                        isDarkMode ? 'text-slate-300' : 'text-slate-700'
+                      }`}
+                    >
                       Password
                     </label>
                     <button
                       type="button"
                       onClick={handleForgotPassword}
                       disabled={isResetting}
-                      className="text-xs font-medium text-[#3898EC] hover:underline disabled:opacity-50"
+                      className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline disabled:opacity-50 cursor-pointer"
                     >
                       {isResetting ? 'Sending reset link...' : 'Forgot password?'}
                     </button>
@@ -494,27 +678,30 @@ export const Portal: React.FC<PortalProps> = ({
                   <input
                     type="password"
                     required
+                    placeholder="Enter account password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium transition-colors ${
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all outline-none ${
                       isDarkMode
-                        ? 'bg-[#060b11] border-[#1a2636] text-white focus:border-[#3898EC]'
-                        : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#3898EC]'
+                        ? 'bg-[#0b0f19] border-[#1e293b] text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                        : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 shadow-advertz'
                     }`}
                   />
                 </div>
 
-                <div className="flex items-center gap-2.5 pt-1">
+                <div className="flex items-center gap-2 pt-1">
                   <input
                     type="checkbox"
                     id="remember"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#3898EC] accent-[#3898EC]"
+                    className="w-4 h-4 rounded border-slate-300 accent-blue-600"
                   />
                   <label
                     htmlFor="remember"
-                    className="text-xs text-slate-400 select-none cursor-pointer"
+                    className={`text-xs select-none cursor-pointer ${
+                      isDarkMode ? 'text-slate-400' : 'text-slate-600'
+                    }`}
                   >
                     Remember me on this device
                   </label>
@@ -523,7 +710,7 @@ export const Portal: React.FC<PortalProps> = ({
                 <button
                   type="submit"
                   disabled={loginLoading}
-                  className="w-full bg-[#3898EC] hover:bg-[#2b85d6] text-white py-2.5 px-4 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md group mt-2 disabled:opacity-60"
+                  className="w-full bg-slate-900 hover:bg-black text-white py-2.5 px-5 rounded-full text-sm font-medium transition-all shadow-xs flex items-center justify-center gap-2 mt-2 disabled:opacity-60 cursor-pointer active:scale-[0.99]"
                 >
                   {loginLoading ? (
                     <>
@@ -533,33 +720,51 @@ export const Portal: React.FC<PortalProps> = ({
                   ) : (
                     <>
                       <span>Sign in</span>
-                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </>
                   )}
                 </button>
 
-                {/* Fast role switcher for development/demo mode (isolated to when Supabase is not configured) */}
-                {!isSupabaseConfigured && (
-                  <div className="pt-3 border-t border-slate-700/30 flex items-center justify-between text-[11px] text-slate-400">
-                    <span className="font-mono text-[10px]">Demo credentials:</span>
-                    <div className="flex items-center gap-1.5">
+                {/* Fast credentials filler for preview & testing environments */}
+                {isStagingDemoAvailable && (
+                  <div
+                    className={`pt-3 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] ${
+                      isDarkMode ? 'border-[#1e2229] text-slate-400' : 'border-slate-200 text-slate-600'
+                    }`}
+                  >
+                    <span
+                      className={`font-mono text-[10px] ${
+                        isDarkMode ? 'text-slate-400' : 'text-slate-600'
+                      }`}
+                    >
+                      {isSupabaseConfigured ? 'Staging test credentials:' : 'Click to fill demo:'}
+                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <button
                         type="button"
                         onClick={() => {
-                          setEmail('chris@meridian.co.uk');
-                          setPassword('••••••••');
+                          setEmail(DEMO_CREDENTIALS.customer.email);
+                          setPassword(DEMO_CREDENTIALS.customer.password);
                         }}
-                        className="px-2.5 py-1 rounded-full bg-slate-800 hover:text-white text-slate-300 font-mono text-[10px] border border-slate-700 cursor-pointer"
+                        className={`px-2 py-1 rounded-md font-mono text-[10px] border cursor-pointer transition-colors ${
+                          isDarkMode
+                            ? 'bg-[#0b0d11] hover:bg-[#1e2229] text-slate-300 border-[#1e2229]'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+                        }`}
                       >
-                        Customer
+                        Customer ({DEMO_CREDENTIALS.customer.email.split('@')[0]})
                       </button>
                       <button
                         type="button"
                         onClick={() => {
-                          setEmail('ops@neotransport.co.uk');
-                          setPassword('••••••••');
+                          setEmail(DEMO_CREDENTIALS.admin.email);
+                          setPassword(DEMO_CREDENTIALS.admin.password);
                         }}
-                        className="px-2.5 py-1 rounded-full bg-rose-950/40 border border-rose-800/40 text-rose-300 hover:text-white font-mono text-[10px] cursor-pointer"
+                        className={`px-2 py-1 rounded-md font-mono text-[10px] border cursor-pointer transition-colors ${
+                          isDarkMode
+                            ? 'bg-rose-950/30 border-rose-800/40 text-rose-300 hover:bg-rose-950/50'
+                            : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
+                        }`}
                       >
                         Dispatch Admin
                       </button>
@@ -569,11 +774,15 @@ export const Portal: React.FC<PortalProps> = ({
               </form>
             </div>
 
-            <p className="text-center text-xs text-slate-400 mt-6">
+            <p
+              className={`text-center text-xs mt-6 ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-600'
+              }`}
+            >
               No account yet?{' '}
               <button
                 onClick={onBackToLanding}
-                className="text-[#3898EC] font-semibold hover:underline"
+                className="text-[#206bc4] font-medium hover:underline cursor-pointer"
               >
                 Open a £0 standby account
               </button>
@@ -581,7 +790,11 @@ export const Portal: React.FC<PortalProps> = ({
           </div>
         </main>
 
-        <footer className="w-full py-4 text-center text-[11px] font-mono text-slate-400">
+        <footer
+          className={`w-full py-4 text-center text-[11px] font-mono ${
+            isDarkMode ? 'text-slate-400' : 'text-slate-500'
+          }`}
+        >
           NEO Transport Ltd · Emergency Freight & Rapid Response Network · 24/7 Dispatch 0800 246 8135
         </footer>
       </div>
@@ -596,6 +809,8 @@ export const Portal: React.FC<PortalProps> = ({
         onToggleTheme={onToggleTheme}
         onSignOut={handleSignOut}
         onSwitchToCustomerPortal={() => setPortalMode('customer')}
+        userRole={userProfile.role}
+        currentUserId={userProfile.id}
       />
     );
   }
@@ -604,7 +819,7 @@ export const Portal: React.FC<PortalProps> = ({
   return (
     <div
       className={`min-h-screen transition-colors duration-200 ${
-        isDarkMode ? 'bg-[#060b11] text-white' : 'bg-slate-50 text-slate-900'
+        isDarkMode ? 'bg-[#0b0f19] text-white' : 'bg-[#f8fafc] text-slate-900'
       }`}
     >
       {/* Top Header */}
@@ -616,38 +831,18 @@ export const Portal: React.FC<PortalProps> = ({
         onNavigatePortal={() => setCurrentView('dashboard')}
         userProfile={userProfile}
         onSwitchToAdmin={userProfile.role === 'admin' ? () => setPortalMode('admin') : undefined}
+        onSelectNotification={(notif: InAppNotification) => {
+          if (notif.bookingId) {
+            setActiveTrackingBookingId(notif.bookingId);
+            persistActiveTrackingId(notif.bookingId);
+            setCurrentView('live-tracking');
+          } else if (notif.category === 'invoice') {
+            setCurrentView('invoices');
+          } else if (notif.category === 'standby') {
+            setCurrentView('documents');
+          }
+        }}
       />
-
-      {/* Mobile Portal Navigation Bar (< 1024px / lg:hidden) - Phase 1 requirement */}
-      <nav
-        aria-label="Mobile Navigation"
-        className={`lg:hidden w-full overflow-x-auto py-2.5 px-4 flex items-center gap-2 border-b sticky top-16 z-20 scrollbar-none transition-colors ${
-          isDarkMode
-            ? 'bg-[#060b11]/95 border-[#172334] text-slate-300 backdrop-blur-md'
-            : 'bg-white/95 border-slate-200 text-slate-700 backdrop-blur-md shadow-xs'
-        }`}
-      >
-        {NAV.map((item) => {
-          const isActive = currentView === item.id;
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setCurrentView(item.id)}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium shrink-0 transition-all ${
-                isActive
-                  ? 'bg-sky-500/10 text-[#3898EC] border border-[#3898EC] font-semibold shadow-xs'
-                  : isDarkMode
-                  ? 'bg-[#0b121c] text-slate-400 border border-[#1a2636] hover:text-white'
-                  : 'bg-slate-100 text-slate-600 border border-slate-200 hover:text-slate-900'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5 shrink-0" />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
 
       <div className="flex">
         {/* Left Sidebar (Desktop: lg:block) */}
@@ -661,92 +856,137 @@ export const Portal: React.FC<PortalProps> = ({
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 overflow-y-auto">
-          {currentView === 'dashboard' && (
-            <DashboardView
-              isDarkMode={isDarkMode}
-              onNavigate={setCurrentView}
-              bookings={bookings}
-              invoices={invoices}
-              userName={userProfile.full_name}
-              onSelectJob={(job) => {
-                if (job.status === 'IN TRANSIT') {
-                  setActiveTrackingBookingId(job.id);
-                  persistActiveTrackingId(job.id);
-                  setCurrentView('live-tracking');
-                } else {
-                  setCurrentView('booking-history');
-                }
-              }}
-            />
+        <main className="flex-1 p-5 sm:p-7 lg:p-9 pb-28 sm:pb-28 lg:pb-9 min-w-0 overflow-y-auto">
+          {bookingPersistenceError && (
+            <div
+              role="alert"
+              className="mb-6 p-4 rounded-2xl border bg-rose-500/10 border-rose-500/30 text-rose-300 text-xs flex items-start justify-between gap-3 shadow-lg"
+            >
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold text-rose-200">Booking Confirmation Blocked</p>
+                  <p className="leading-relaxed opacity-90">{bookingPersistenceError}</p>
+                  <p className="text-[11px] text-slate-300 opacity-80">
+                    Your shipment details are safely preserved in draft. Central dispatch has not yet confirmed the job.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBookingPersistenceError(null)}
+                className="text-rose-400 hover:text-rose-200 text-xs px-2.5 py-1 rounded-lg border border-rose-500/30 hover:bg-rose-500/20 transition-colors cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
           )}
+          <div key={currentView} className="animate-view-entrance">
+            {currentView === 'dashboard' && (
+              <DashboardView
+                isDarkMode={isDarkMode}
+                onNavigate={setCurrentView}
+                bookings={scopedBookings}
+                invoices={scopedInvoices}
+                userName={userProfile.full_name}
+                onSelectJob={(job) => {
+                  if (job.status === 'IN TRANSIT') {
+                    setActiveTrackingBookingId(job.id);
+                    persistActiveTrackingId(job.id);
+                    setCurrentView('live-tracking');
+                  } else {
+                    setCurrentView('booking-history');
+                  }
+                }}
+              />
+            )}
 
-          {currentView === 'new-booking' && (
-            <NewBookingView
-              isDarkMode={isDarkMode}
-              onBookingCreated={handleBookingCreated}
-              onViewTracking={handleViewTracking}
-              initialWizardState={wizardState}
-              onUpdateState={handleUpdateWizardState}
-              existingBookings={bookings}
-              onResetWizard={handleResetWizard}
-            />
-          )}
+            {currentView === 'new-booking' && (
+              <NewBookingView
+                isDarkMode={isDarkMode}
+                onBookingCreated={handleBookingCreated}
+                onViewTracking={handleViewTracking}
+                initialWizardState={wizardState}
+                onUpdateState={handleUpdateWizardState}
+                existingBookings={scopedBookings}
+                onResetWizard={handleResetWizard}
+                userEmail={email || 'accounts@meridian.co.uk'}
+                userName={userProfile.full_name}
+                companyId={userProfile.company_id}
+              />
+            )}
 
-          {currentView === 'live-tracking' && (
-            <LiveTrackingView
-              isDarkMode={isDarkMode}
-              activeBooking={activeTrackingBooking}
-              bookings={bookings}
-              onSelectBooking={(id) => {
-                setActiveTrackingBookingId(id);
-                persistActiveTrackingId(id);
-              }}
-            />
-          )}
+            {currentView === 'live-tracking' && (
+              <LiveTrackingView
+                isDarkMode={isDarkMode}
+                activeBooking={activeTrackingBooking}
+                bookings={scopedBookings}
+                onSelectBooking={(id) => {
+                  setActiveTrackingBookingId(id);
+                  persistActiveTrackingId(id);
+                }}
+                onBookingUpdated={handleBookingUpdated}
+                onNavigate={setCurrentView}
+              />
+            )}
 
-          {currentView === 'booking-history' && (
-            <BookingHistoryView
-              isDarkMode={isDarkMode}
-              bookings={bookings}
-              onNavigate={setCurrentView}
-              onRebook={handleRebook}
-              onViewPod={(ref) => {
-                setPodHighlightRef(ref);
-                setCurrentView('documents');
-              }}
-            />
-          )}
+            {currentView === 'booking-history' && (
+              <BookingHistoryView
+                isDarkMode={isDarkMode}
+                bookings={scopedBookings}
+                onNavigate={setCurrentView}
+                onRebook={handleRebook}
+                onViewPod={(ref) => {
+                  setPodHighlightRef(ref);
+                  setCurrentView('documents');
+                }}
+              />
+            )}
 
-          {currentView === 'quotes' && (
-            <QuotesView
-              isDarkMode={isDarkMode}
-              quotes={quotes}
-              onAcceptQuote={handleAcceptQuote}
-              onDiscardQuote={handleDiscardQuote}
-              onAddNewQuote={handleAddNewQuote}
-              onNavigate={setCurrentView}
-            />
-          )}
+            {currentView === 'quotes' && (
+              <QuotesView
+                isDarkMode={isDarkMode}
+                quotes={scopedQuotes}
+                onAcceptQuote={handleAcceptQuote}
+                onDiscardQuote={handleDiscardQuote}
+                onAddNewQuote={handleAddNewQuote}
+                onNavigate={setCurrentView}
+              />
+            )}
 
-          {currentView === 'invoices' && (
-            <InvoicesView isDarkMode={isDarkMode} invoices={invoices} />
-          )}
+            {currentView === 'invoices' && (
+              <InvoicesView isDarkMode={isDarkMode} invoices={scopedInvoices} />
+            )}
 
-          {currentView === 'documents' && (
-            <DocumentsView
-              isDarkMode={isDarkMode}
-              documents={documents}
-              onAddDocument={handleAddDocument}
-              highlightRef={podHighlightRef}
-            />
-          )}
+            {currentView === 'documents' && (
+              <DocumentsView
+                isDarkMode={isDarkMode}
+                documents={scopedDocuments}
+                onAddDocument={handleAddDocument}
+                highlightRef={podHighlightRef}
+              />
+            )}
 
-          {currentView === 'support' && (
-            <SupportView isDarkMode={isDarkMode} />
-          )}
+            {currentView === 'support' && (
+              <SupportView isDarkMode={isDarkMode} companyId={userProfile.company_id} />
+            )}
+          </div>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Dock (Visible on screens < lg) */}
+      <MobileBottomNav
+        currentView={currentView}
+        onNavigate={setCurrentView}
+        isDarkMode={isDarkMode}
+        onToggleTheme={onToggleTheme}
+        onSignOut={handleSignOut}
+        userRole={userProfile.role}
+        onSwitchToAdmin={userProfile.role === 'admin' ? () => setPortalMode('admin') : undefined}
+        hasActiveInTransit={scopedBookings.some((b: Booking) => b.status === 'IN TRANSIT')}
+        documentCount={scopedDocuments.length}
+        unpaidInvoiceCount={scopedInvoices.filter((i: Invoice) => i.status === 'DUE' || i.status === 'OVERDUE').length}
+      />
     </div>
   );
 };

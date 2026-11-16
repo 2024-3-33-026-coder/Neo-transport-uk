@@ -9,7 +9,18 @@
     "preview": "vite preview",
     "start": "node server.ts",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test:booking-lifecycle": "tsx tests/booking-lifecycle.test.ts",
+    "test:stripe": "tsx tests/stripe-payment-lifecycle.test.ts",
+    "test:checkout-ui": "tsx tests/customer-stripe-checkout-ui.test.ts",
+    "test:containment": "tsx tests/booking-persistence-containment.test.ts",
+    "test:security-remediation": "tsx tests/security-remediation-tenant-isolation.test.ts",
+    "test:notifications": "tsx tests/transactional-notifications.test.ts",
+    "test:booking-id": "tsx tests/booking-id-generation-concurrency.test.ts",
+    "test:portal-notifications": "tsx tests/customer-portal-notifications.test.ts",
+    "test:traveltime": "tsx tests/traveltime-geocoding-service.test.ts",
+    "test:geocoding-safety": "tsx tests/geocoding-safety-override.test.ts",
+    "test:customer-tenant": "tsx tests/customer-tenant-isolation-and-autofill.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -22,17 +33,18 @@
     "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
+    "stripe": "^23.0.0",
     "vite": "^8.3.0"
   },
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "autoprefixer": "^10.4.21",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.28.2",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
-    "typescript": "^7.0.2",
-    "@types/express": "^4.17.21"
+    "typescript": "^7.0.2"
   }
 }

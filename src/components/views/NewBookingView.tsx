@@ -12,21 +12,34 @@ import {
   Loader2,
   Clock,
   Info,
+  AlertCircle,
+  AlertTriangle,
 } from 'lucide-react';
 import { BookingWizardState, Booking } from '../../types';
+import { AddressAutocomplete } from '../ui/AddressAutocomplete';
 import { VEHICLE_OPTIONS } from '../../data/mockData';
 import { parseShipmentWithGemini } from '../../lib/geminiClient';
-import { getNextBookingReference, persistWizardDraft } from '../../lib/portalStore';
+import {
+  getNextBookingReference,
+  getNextBookingReferenceAsync,
+  persistWizardDraft,
+  createStripeCheckoutSession,
+  pollBookingPaymentStatus,
+  updateBookingPaymentStatus,
+} from '../../lib/portalStore';
 import { calculateUkRoadDistance } from '../../lib/routing';
 
 interface NewBookingViewProps {
   isDarkMode: boolean;
-  onBookingCreated: (newBooking: Booking, wizardState?: BookingWizardState) => void;
+  onBookingCreated: (newBooking: Booking, wizardState?: BookingWizardState) => Promise<Booking | void> | Booking | void;
   onViewTracking: (bookingId?: string) => void;
   initialWizardState?: Partial<BookingWizardState>;
   onUpdateState?: (state: BookingWizardState) => void;
   existingBookings?: Booking[];
   onResetWizard?: () => void;
+  userEmail?: string;
+  userName?: string;
+  companyId?: string;
 }
 
 export const BookingWizard: React.FC<NewBookingViewProps> = ({
@@ -36,11 +49,22 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
   initialWizardState,
   existingBookings = [],
   onResetWizard,
+  userEmail,
+  userName,
+  companyId,
 }) => {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isAiParsing, setIsAiParsing] = useState<boolean>(false);
   const [aiPrompt, setAiPrompt] = useState<string>('');
   const [aiNote, setAiNote] = useState<string | null>(null);
+
+  // Stripe card checkout states
+  const [isSubmittingCardPayment, setIsSubmittingCardPayment] = useState<boolean>(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentCancelNotice, setPaymentCancelNotice] = useState<string | null>(null);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState<boolean>(false);
+  const [verifyingBookingRef, setVerifyingBookingRef] = useState<string | null>(null);
+  const [paymentPendingWarning, setPaymentPendingWarning] = useState<string | null>(null);
 
   // Complete Controlled State in BookingWizard lifted and preserved
   const [form, setForm] = useState<BookingWizardState>(() => ({
@@ -149,10 +173,12 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
     { num: 8, label: '08 Done' },
   ];
 
-  const cardBg = isDarkMode ? 'bg-[#0b121c] border-[#172334]' : 'bg-white border-slate-200';
+  const cardBg = isDarkMode
+    ? 'bg-[#111827] border-[#1e293b]'
+    : 'bg-white border border-slate-200/80 shadow-advertz';
   const inputBg = isDarkMode
-    ? 'bg-[#060b11] border-[#1a2636] text-white focus:border-[#3898EC]'
-    : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#3898EC]';
+    ? 'bg-[#060b11] border-[#1a2636] text-white focus:border-blue-500'
+    : 'bg-white border border-slate-200 text-slate-900 shadow-advertz focus:ring-2 focus:ring-blue-500/15 focus:border-blue-500';
 
   const handleAiAutoFill = async () => {
     const textToParse =
@@ -194,37 +220,235 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
 
   const [confirmedBooking, setConfirmedBooking] = useState<Booking | null>(null);
 
-  const handleNextStep = () => {
+  // Detect Stripe Checkout Return Redirects (?payment=success&bookingId=NT-xxxxx or ?payment=cancelled&bookingId=NT-xxxxx)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const paymentParam = params.get('payment');
+    const bookingIdParam = params.get('bookingId');
+
+    if (!paymentParam && !bookingIdParam) return;
+
+    // Remove query params cleanly from browser history so refresh does not re-trigger
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+
+    if (paymentParam === 'cancelled') {
+      setCurrentStep(7);
+      setPaymentCancelNotice(
+        `Stripe Checkout was cancelled for booking ${bookingIdParam || 'reference'}. No payment was taken. Your booking details have been preserved below — you may retry card checkout or choose an alternative payment method.`
+      );
+      return;
+    }
+
+    if (paymentParam === 'success' && bookingIdParam) {
+      setIsVerifyingPayment(true);
+      setVerifyingBookingRef(bookingIdParam);
+      setPaymentError(null);
+      setPaymentCancelNotice(null);
+      setPaymentPendingWarning(null);
+
+      // Server-authoritative verification loop: fails closed until GET /api/payments/status/:id confirms isFullyPaid: true
+      pollBookingPaymentStatus(bookingIdParam, 6, 1500)
+        .then(async (statusRes) => {
+          setIsVerifyingPayment(false);
+          if (statusRes.isFullyPaid) {
+            const existing = existingBookings.find(
+              (b) => b.id === bookingIdParam || b.reference === bookingIdParam
+            );
+            const updated = await updateBookingPaymentStatus(
+              bookingIdParam,
+              'paid',
+              statusRes.amountPaidGbp,
+              statusRes.stripePaymentIntentId
+            );
+            const confirmed: Booking = updated || {
+              id: bookingIdParam,
+              reference: bookingIdParam,
+              date: 'Today',
+              origin: existing?.origin || form.pickupPostcode,
+              destination: existing?.destination || form.dropoffPostcode,
+              vehicle: existing?.vehicle || form.selectedVehicle,
+              total: statusRes.totalGbp || form.estimatedTotal,
+              status: 'SCHEDULED',
+              payment_method: 'card',
+              payment_status: 'paid',
+              amount_paid_gbp: statusRes.amountPaidGbp,
+              stripe_payment_intent_id: statusRes.stripePaymentIntentId,
+              cargo: existing?.cargo || form.cargoDescription,
+              weightKg: existing?.weightKg || form.cargoWeightKg,
+              palletCount: existing?.palletCount || form.palletCount,
+              deliveryTime: form.deliveryWindow || 'Direct transit (approx 88 min)',
+              progress: 0.05,
+            };
+            setConfirmedBooking(confirmed);
+            setCurrentStep(8);
+          } else if (statusRes.paymentStatus === 'failed' || statusRes.paymentStatus === 'cancelled') {
+            setCurrentStep(7);
+            setPaymentError(
+              `Payment was marked as ${statusRes.paymentStatus} by Stripe for booking ${bookingIdParam}. Please review your payment details and retry.`
+            );
+          } else {
+            // Still requires_payment or pending after polling attempts
+            setCurrentStep(7);
+            setPaymentPendingWarning(
+              `Payment is awaiting final webhook confirmation for booking ${bookingIdParam}. Dispatches are strictly gated until bank payment confirmation is received.`
+            );
+          }
+        })
+        .catch((err) => {
+          setIsVerifyingPayment(false);
+          setCurrentStep(7);
+          setPaymentError(
+            `Unable to verify payment status with server: ${err?.message || err}. Dispatches remain gated until payment is verified.`
+          );
+        });
+    }
+  }, []);
+
+  const handleManualRecheckStatus = (bookingRef: string) => {
+    setIsVerifyingPayment(true);
+    setPaymentError(null);
+    setPaymentPendingWarning(null);
+
+    pollBookingPaymentStatus(bookingRef, 4, 1500)
+      .then(async (statusRes) => {
+        setIsVerifyingPayment(false);
+        if (statusRes.isFullyPaid) {
+          const updated = await updateBookingPaymentStatus(
+            bookingRef,
+            'paid',
+            statusRes.amountPaidGbp,
+            statusRes.stripePaymentIntentId
+          );
+          setConfirmedBooking(
+            updated || {
+              id: bookingRef,
+              reference: bookingRef,
+              date: 'Today',
+              origin: form.pickupPostcode,
+              destination: form.dropoffPostcode,
+              vehicle: form.selectedVehicle,
+              total: statusRes.totalGbp || form.estimatedTotal,
+              status: 'SCHEDULED',
+              payment_method: 'card',
+              payment_status: 'paid',
+              amount_paid_gbp: statusRes.amountPaidGbp,
+              stripe_payment_intent_id: statusRes.stripePaymentIntentId,
+              deliveryTime: form.deliveryWindow || 'Direct transit (approx 88 min)',
+              progress: 0.05,
+            }
+          );
+          setCurrentStep(8);
+        } else {
+          setPaymentPendingWarning(
+            `Payment verification is still pending for booking ${bookingRef}. Dispatches remain gated until payment is confirmed.`
+          );
+        }
+      })
+      .catch((err) => {
+        setIsVerifyingPayment(false);
+        setPaymentError(`Status check failed: ${err?.message || err}`);
+      });
+  };
+
+  const handleNextStep = async () => {
     if (currentStep < 7) {
       setCurrentStep(currentStep + 1);
     } else if (currentStep === 7) {
-      // Step 7 (Payment) -> Click "Confirm booking" -> Generate sequential reference, persist & advance to Step 8 (Done)
-      const newRef = getNextBookingReference(existingBookings);
+      if (form.paymentMethod === 'card') {
+        if (isSubmittingCardPayment || isVerifyingPayment) return;
+        setIsSubmittingCardPayment(true);
+        setPaymentError(null);
+        setPaymentCancelNotice(null);
+        setPaymentPendingWarning(null);
+
+        try {
+          const newRef = await getNextBookingReferenceAsync(existingBookings);
+          const newBooking: Booking = {
+            id: newRef,
+            reference: newRef,
+            date: 'Today',
+            origin: form.pickupPostcode,
+            destination: form.dropoffPostcode,
+            vehicle: form.selectedVehicle,
+            total: form.estimatedTotal,
+            status: 'SCHEDULED',
+            payment_method: 'card',
+            payment_status: 'requires_payment',
+            amount_paid_gbp: 0,
+            cargo: form.cargoDescription,
+            weightKg: form.cargoWeightKg,
+            palletCount: form.palletCount,
+            pickupTime: 'Now',
+            deliveryTime: form.deliveryWindow || 'Direct transit (approx 88 min)',
+            driver: undefined,
+            progress: 0.05,
+          };
+
+          // Save booking to local cache & Supabase
+          const savedBooking = await onBookingCreated(newBooking, form);
+          const confirmedRef = (savedBooking && savedBooking.reference) ? savedBooking.reference : newRef;
+
+          // Correlate with server-authoritative Stripe Checkout Session
+          const sessionRes = await createStripeCheckoutSession({
+            bookingId: confirmedRef,
+            customerEmail: userEmail || 'accounts@meridian.co.uk',
+            customerName: userName || form.contactName || 'Valued Customer',
+            originPostcode: form.pickupPostcode,
+            destinationPostcode: form.dropoffPostcode,
+            vehicle: form.selectedVehicle,
+            companyId: companyId,
+            successUrl: `${window.location.origin}/?payment=success&bookingId=${encodeURIComponent(confirmedRef)}`,
+            cancelUrl: `${window.location.origin}/?payment=cancelled&bookingId=${encodeURIComponent(confirmedRef)}`,
+          });
+
+          if (!sessionRes.checkoutUrl) {
+            throw new Error('Server returned success but did not provide a Stripe Checkout URL.');
+          }
+
+          // Safely redirect to Stripe hosted checkout
+          window.location.href = sessionRes.checkoutUrl;
+        } catch (err: any) {
+          setIsSubmittingCardPayment(false);
+          setPaymentError(
+            err?.message || 'Failed to initialize Stripe Checkout. Please try again or choose an alternative payment method.'
+          );
+        }
+        return;
+      }
+
+      // Non-card payment methods (standby-account, corporate-bacs)
+      const newRef = await getNextBookingReferenceAsync(existingBookings);
       const newBooking: Booking = {
-        id: `b-${Date.now()}`,
+        id: newRef,
         reference: newRef,
         date: 'Today',
         origin: form.pickupPostcode,
         destination: form.dropoffPostcode,
         vehicle: form.selectedVehicle,
         total: form.estimatedTotal,
-        status: 'IN TRANSIT',
+        status: 'SCHEDULED',
+        payment_method: form.paymentMethod,
+        payment_status: form.paymentMethod === 'standby-account' ? 'standby_terms' : 'bacs_invoice',
+        amount_paid_gbp: 0,
         cargo: form.cargoDescription,
         weightKg: form.cargoWeightKg,
         palletCount: form.palletCount,
         pickupTime: 'Now',
-        deliveryTime: 'Direct transit (approx 88 min)',
-        driver: {
-          name: 'Marek Kowalski',
-          vehicleModel: form.selectedVehicle,
-          registration: 'GN71 XPO',
-          phone: '07700 900821',
-          status: 'ASSIGNED & EN ROUTE',
-        },
+        deliveryTime: form.deliveryWindow || 'Direct transit (approx 88 min)',
+        driver: undefined,
+        progress: 0.05,
       };
-      setConfirmedBooking(newBooking);
-      onBookingCreated(newBooking, form);
-      setCurrentStep(8);
+      try {
+        const savedBooking = await onBookingCreated(newBooking, form);
+        setConfirmedBooking(savedBooking || newBooking);
+        setCurrentStep(8);
+      } catch (err: any) {
+        setPaymentError(
+          `Unable to confirm booking with central dispatch: ${err?.message || 'Database rejected insertion'}. Your details have been preserved below; please click "Confirm Booking" to retry.`
+        );
+      }
     }
   };
 
@@ -246,20 +470,17 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Title section */}
       <div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="w-4 h-0.5 bg-[#3898EC]" />
-          <span className="font-mono text-xs uppercase tracking-widest text-[#3898EC] font-semibold">
-            NEW BOOKING
-          </span>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-blue-600 bg-blue-50/80 border border-blue-200/60 mb-2">
+          <span>Rapid dispatch booking</span>
         </div>
         <h1
-          className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
+          className={`text-2xl sm:text-3xl font-bold tracking-tight ${
             isDarkMode ? 'text-white' : 'text-slate-900'
           }`}
         >
           Create a booking
         </h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
           Instant quote, vehicle recommendation and dispatch in under a minute.
         </p>
       </div>
@@ -273,19 +494,19 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
             <button
               key={s.num}
               onClick={() => setCurrentStep(s.num)}
-              className={`px-3.5 py-1.5 rounded-full font-mono text-xs transition-all shrink-0 flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer ${
                 isActive
-                  ? 'bg-sky-500/10 text-[#3898EC] border border-[#3898EC] font-semibold shadow-xs'
+                  ? 'bg-blue-600 text-white font-medium shadow-xs'
                   : isDone
                   ? isDarkMode
-                    ? 'bg-[#0b121c] text-emerald-400 border border-emerald-800/40'
-                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    ? 'bg-[#12151b] text-emerald-400 border border-emerald-800/40'
+                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-medium'
                   : isDarkMode
-                  ? 'bg-[#090e17] text-slate-500 border border-slate-800 hover:text-slate-300'
-                  : 'bg-slate-100 text-slate-500 border border-slate-200 hover:text-slate-800'
+                  ? 'bg-[#0f1115] text-slate-400 border border-[#1e222b] hover:text-slate-200'
+                  : 'bg-white text-slate-600 border border-slate-200 shadow-advertz hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              {isDone && <CheckCircle className="w-3 h-3 text-emerald-500" />}
+              {isDone && <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />}
               <span>{s.label}</span>
             </button>
           );
@@ -294,13 +515,13 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
 
       {/* Gemini AI Smart Assistant Bar */}
       <div
-        className={`p-4 rounded-2xl border transition-all ${
-          isDarkMode ? 'bg-[#09111c] border-[#1e2f46]' : 'bg-sky-50/70 border-sky-200'
+        className={`p-5 rounded-2xl border transition-all ${
+          isDarkMode ? 'bg-[#09111c] border-[#1e2f46]' : 'bg-blue-50/70 border border-blue-200/80 shadow-advertz'
         }`}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#3898EC]/20 flex items-center justify-center text-[#3898EC]">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-600/15 flex items-center justify-center text-blue-600">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
@@ -311,7 +532,11 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
               >
                 Gemini Express Autofill
               </p>
-              <p className="text-[11px] text-slate-400">
+              <p
+                className={`text-[11px] ${
+                  isDarkMode ? 'text-slate-400' : 'text-slate-600 font-medium'
+                }`}
+              >
                 Paste an email or describe the job. Gemini 3.1 Flash Lite populates addresses, payload, and vehicle.
               </p>
             </div>
@@ -323,12 +548,12 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
               placeholder="e.g. 2 pallets 650kg from Manchester to Birmingham..."
               value={aiPrompt}
               onChange={(e) => setAiPrompt(e.target.value)}
-              className={`text-xs px-3 py-1.5 rounded-xl border w-full sm:w-72 ${inputBg}`}
+              className={`text-xs px-3.5 py-2 rounded-xl border w-full sm:w-72 ${inputBg}`}
             />
             <button
               onClick={handleAiAutoFill}
               disabled={isAiParsing}
-              className="bg-[#3898EC] hover:bg-[#2b85d6] text-white px-4 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-all disabled:opacity-50"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-xs font-medium flex items-center gap-1.5 shrink-0 transition-all cursor-pointer shadow-xs disabled:opacity-50"
             >
               {isAiParsing ? (
                 <>
@@ -346,7 +571,7 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
         </div>
 
         {aiNote && (
-          <div className="mt-2.5 pt-2.5 border-t border-sky-500/20 text-xs text-[#3898EC] flex items-center gap-2 font-mono">
+          <div className="mt-2.5 pt-2.5 border-t border-blue-200 text-xs text-blue-700 flex items-center gap-2 font-mono">
             <Info className="w-3.5 h-3.5 shrink-0" />
             <span>{aiNote}</span>
           </div>
@@ -374,20 +599,35 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1.5">
-                    Pickup postcode / address
-                  </label>
-                  <input
-                    type="text"
-                    value={form.pickupPostcode}
-                    onChange={(e) =>
-                      updateForm((prev) => ({ ...prev, pickupPostcode: e.target.value }))
-                    }
-                    className={`w-full px-4 py-2.5 rounded-xl border text-sm font-medium ${inputBg}`}
-                    placeholder="e.g. Manchester M17 1AB"
-                  />
-                </div>
+                <AddressAutocomplete
+                  id="pickup-address-input"
+                  name="pickupAddress"
+                  label="Pickup postcode / address"
+                  value={form.pickupPostcode}
+                  placeholder="e.g. Manchester M17 1AB or warehouse address"
+                  selectedAddress={form.pickupAddressDetails}
+                  onSelect={(address) => {
+                    updateForm((prev) => ({
+                      ...prev,
+                      pickupPostcode: address.formattedAddress,
+                      pickupAddressDetails: address,
+                    }));
+                  }}
+                  onChange={(val) => {
+                    updateForm((prev) => ({
+                      ...prev,
+                      pickupPostcode: val,
+                    }));
+                  }}
+                  onInvalidate={() => {
+                    updateForm((prev) => ({
+                      ...prev,
+                      pickupAddressDetails: null,
+                    }));
+                  }}
+                  isDarkMode={isDarkMode}
+                  inputBg={inputBg}
+                />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -464,17 +704,34 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1.5">
-                    Drop-off postcode / delivery address
-                  </label>
-                  <input
-                    type="text"
+                  <AddressAutocomplete
+                    id="dropoff-address-input"
+                    name="dropoffAddress"
+                    label="Drop-off postcode / delivery address"
                     value={form.dropoffPostcode}
-                    onChange={(e) =>
-                      updateForm((prev) => ({ ...prev, dropoffPostcode: e.target.value }))
-                    }
-                    className={`w-full px-4 py-2.5 rounded-xl border text-sm font-medium ${inputBg}`}
-                    placeholder="e.g. Birmingham B6 7EU"
+                    placeholder="e.g. Birmingham B6 7EU or delivery site"
+                    selectedAddress={form.dropoffAddressDetails}
+                    onSelect={(address) => {
+                      updateForm((prev) => ({
+                        ...prev,
+                        dropoffPostcode: address.formattedAddress,
+                        dropoffAddressDetails: address,
+                      }));
+                    }}
+                    onChange={(val) => {
+                      updateForm((prev) => ({
+                        ...prev,
+                        dropoffPostcode: val,
+                      }));
+                    }}
+                    onInvalidate={() => {
+                      updateForm((prev) => ({
+                        ...prev,
+                        dropoffAddressDetails: null,
+                      }));
+                    }}
+                    isDarkMode={isDarkMode}
+                    inputBg={inputBg}
                   />
                   {routeSummaryText && (
                     <div className="flex items-center gap-2 text-xs font-mono text-[#3898EC] bg-sky-500/10 border border-sky-500/20 px-3 py-1.5 rounded-xl mt-2">
@@ -642,7 +899,12 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
                     }
                     className="w-4 h-4 rounded text-[#3898EC]"
                   />
-                  <label htmlFor="hazmat" className="text-xs text-slate-300">
+                  <label
+                    htmlFor="hazmat"
+                    className={`text-xs ${
+                      isDarkMode ? 'text-slate-300' : 'text-slate-700 font-medium'
+                    }`}
+                  >
                     ADR / Dangerous Goods classification applies (Requires certified driver)
                   </label>
                 </div>
@@ -679,12 +941,12 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
                           estimatedTotal: Math.round(v.baseRate + v.perMile * prev.estimatedMiles),
                         }))
                       }
-                      className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                      className={`p-4 rounded-xl border cursor-pointer transition-all duration-180 hover-lift flex items-center justify-between ${
                         isSelected
-                          ? 'border-[#3898EC] bg-sky-500/10 shadow-xs'
+                          ? 'border-[#3898EC] bg-sky-500/10 shadow-xs ring-1 ring-[#3898EC]/30'
                           : isDarkMode
                           ? 'border-[#1a2636] hover:border-slate-600 bg-[#060b11]'
-                          : 'border-slate-200 hover:border-slate-400 bg-slate-50'
+                          : 'border-slate-200 hover:border-slate-400 bg-white shadow-xs'
                       }`}
                     >
                       <div>
@@ -696,11 +958,21 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
                           >
                             {v.name}
                           </span>
-                          <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                          <span
+                            className={`font-mono text-[10px] px-2 py-0.5 rounded-full ${
+                              isDarkMode
+                                ? 'bg-slate-800 text-slate-300'
+                                : 'bg-slate-100 text-slate-700 border border-slate-200 font-medium'
+                            }`}
+                          >
                             {v.capacity}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-1">
+                        <p
+                          className={`text-xs mt-1 ${
+                            isDarkMode ? 'text-slate-400' : 'text-slate-600 font-medium'
+                          }`}
+                        >
                           {v.pallets} · {v.dimensions}
                         </p>
                       </div>
@@ -709,7 +981,11 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
                         <span className="font-bold text-base text-[#3898EC]">
                           £{Math.round(v.baseRate + v.perMile * form.estimatedMiles)}
                         </span>
-                        <p className="font-mono text-[10px] text-slate-400">
+                        <p
+                          className={`font-mono text-[10px] ${
+                            isDarkMode ? 'text-slate-400' : 'text-slate-500 font-medium'
+                          }`}
+                        >
                           Standby rate
                         </p>
                       </div>
@@ -767,21 +1043,29 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
                         selectedService: tier.name,
                       }))
                     }
-                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                    className={`p-4 rounded-xl border cursor-pointer transition-all duration-180 hover-lift ${
                       form.selectedService === tier.name
-                        ? 'border-[#3898EC] bg-sky-500/10'
+                        ? 'border-[#3898EC] bg-sky-500/10 shadow-xs ring-1 ring-[#3898EC]/30'
                         : isDarkMode
                         ? 'border-[#1a2636] bg-[#060b11]'
-                        : 'border-slate-200 bg-slate-50'
+                        : 'border-slate-200 bg-white shadow-xs hover:border-slate-300'
                     }`}
                   >
                     <span className="font-mono text-[10px] text-[#3898EC] font-semibold tracking-wider">
                       {tier.tag}
                     </span>
-                    <h3 className="font-bold text-sm mt-1 text-white">
+                    <h3
+                      className={`font-bold text-sm mt-1 ${
+                        isDarkMode ? 'text-white' : 'text-slate-900'
+                      }`}
+                    >
                       {tier.name}
                     </h3>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    <p
+                      className={`text-xs mt-1 leading-relaxed ${
+                        isDarkMode ? 'text-slate-400' : 'text-slate-600 font-medium'
+                      }`}
+                    >
                       {tier.desc}
                     </p>
                   </div>
@@ -808,18 +1092,26 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
 
               <div
                 className={`p-5 rounded-2xl border ${
-                  isDarkMode ? 'bg-[#060b11] border-[#1e2c40]' : 'bg-slate-50 border-slate-200'
+                  isDarkMode ? 'bg-[#060b11] border-[#1e2c40]' : 'bg-slate-50/90 border-slate-200/90 shadow-xs'
                 }`}
               >
-                <div className="flex justify-between items-center pb-4 border-b border-slate-700/40">
+                <div
+                  className={`flex justify-between items-center pb-4 border-b ${
+                    isDarkMode ? 'border-slate-700/40' : 'border-slate-200'
+                  }`}
+                >
                   <div>
-                    <span className="font-mono text-xs uppercase text-slate-400">
+                    <span
+                      className={`font-mono text-xs uppercase ${
+                        isDarkMode ? 'text-slate-400' : 'text-slate-500 font-medium'
+                      }`}
+                    >
                       Standard Commercial Tariff
                     </span>
                     <p className="text-sm line-through text-slate-500">£420.00</p>
                   </div>
                   <div className="text-right">
-                    <span className="font-mono text-xs text-emerald-400 font-semibold uppercase">
+                    <span className="font-mono text-xs text-emerald-500 font-bold uppercase">
                       Standby Account Rate (15% Off)
                     </span>
                     <p className="text-2xl font-extrabold text-[#3898EC]">
@@ -829,31 +1121,37 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
                 </div>
 
                 <div className="pt-4 space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-400">
-                    <span>Base emergency dispatch ({form.selectedVehicle}):</span>
-                    <span className="text-white font-mono">
+                  <div className="flex justify-between">
+                    <span className={isDarkMode ? 'text-slate-400' : 'text-slate-600 font-medium'}>
+                      Base emergency dispatch ({form.selectedVehicle}):
+                    </span>
+                    <span className={`font-mono font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                       £{(VEHICLE_OPTIONS.find((v) => v.name === form.selectedVehicle)?.baseRate || 90).toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>
+                  <div className="flex justify-between">
+                    <span className={isDarkMode ? 'text-slate-400' : 'text-slate-600 font-medium'}>
                       Mileage charge ({form.estimatedMiles} miles @ £
                       {(VEHICLE_OPTIONS.find((v) => v.name === form.selectedVehicle)?.perMile || 1.8).toFixed(2)}/mi):
                     </span>
-                    <span className="text-white font-mono">
+                    <span className={`font-mono font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                       £{(
                         form.estimatedMiles *
                         (VEHICLE_OPTIONS.find((v) => v.name === form.selectedVehicle)?.perMile || 1.8)
                       ).toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Goods in Transit Insurance (£50,000 cover):</span>
-                    <span className="text-emerald-400 font-mono">INCLUDED FREE</span>
+                  <div className="flex justify-between">
+                    <span className={isDarkMode ? 'text-slate-400' : 'text-slate-600 font-medium'}>
+                      Goods in Transit Insurance (£50,000 cover):
+                    </span>
+                    <span className="text-emerald-500 font-mono font-bold">INCLUDED FREE</span>
                   </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Live Corridor Tracking Share Link:</span>
-                    <span className="text-emerald-400 font-mono">INCLUDED FREE</span>
+                  <div className="flex justify-between">
+                    <span className={isDarkMode ? 'text-slate-400' : 'text-slate-600 font-medium'}>
+                      Live Corridor Tracking Share Link:
+                    </span>
+                    <span className="text-emerald-500 font-mono font-bold">INCLUDED FREE</span>
                   </div>
                 </div>
               </div>
@@ -876,22 +1174,109 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
                 </h2>
               </div>
 
+              {/* Status Alert Banners */}
+              {paymentCancelNotice && (
+                <div
+                  role="alert"
+                  aria-live="polite"
+                  className="p-4 rounded-xl border bg-amber-500/10 border-amber-500/30 text-amber-300 text-xs flex items-start gap-3"
+                >
+                  <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-bold text-amber-200">Checkout Cancelled</p>
+                    <p className="leading-relaxed opacity-90">{paymentCancelNotice}</p>
+                  </div>
+                </div>
+              )}
+
+              {paymentError && (
+                <div
+                  role="alert"
+                  aria-live="assertive"
+                  className="p-4 rounded-xl border bg-rose-500/10 border-rose-500/30 text-rose-300 text-xs flex items-start gap-3"
+                >
+                  <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1 flex-1">
+                    <p className="font-bold text-rose-200">Payment Error</p>
+                    <p className="leading-relaxed opacity-90">{paymentError}</p>
+                  </div>
+                </div>
+              )}
+
+              {paymentPendingWarning && (
+                <div
+                  role="alert"
+                  aria-live="polite"
+                  className="p-4 rounded-xl border bg-sky-500/10 border-sky-500/30 text-sky-200 text-xs flex items-start justify-between gap-3"
+                >
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-5 h-5 text-[#3898EC] shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="font-bold text-sky-100">Payment Confirmation In Progress</p>
+                      <p className="leading-relaxed opacity-90">{paymentPendingWarning}</p>
+                    </div>
+                  </div>
+                  {verifyingBookingRef && (
+                    <button
+                      type="button"
+                      onClick={() => handleManualRecheckStatus(verifyingBookingRef)}
+                      className="px-3 py-1.5 rounded-lg bg-[#3898EC] hover:bg-[#2b85d6] text-white text-[11px] font-bold shrink-0 self-center cursor-pointer"
+                    >
+                      Re-check Status
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Payment Verification Active Spinner Card */}
+              {isVerifyingPayment && (
+                <div className="text-center py-10 px-4 space-y-4" role="status" aria-live="polite">
+                  <div className="w-14 h-14 rounded-full bg-sky-500/10 border border-[#3898EC]/40 text-[#3898EC] flex items-center justify-center mx-auto">
+                    <Loader2 className="w-7 h-7 animate-spin" />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="font-mono text-xs uppercase tracking-widest text-[#3898EC] font-bold">
+                      CARD PAYMENT VERIFICATION
+                    </span>
+                    <h3 className={`text-lg font-extrabold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                      Verifying Transaction with Stripe...
+                    </h3>
+                    <p className={`text-xs max-w-md mx-auto ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                      Authoritative payment confirmation in progress for booking reference{' '}
+                      <span className="font-mono font-bold text-[#3898EC]">{verifyingBookingRef}</span>. Dispatches are strictly gated until payment confirmation is verified by the server.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Payment Method Selector */}
               <div className="space-y-3">
-                <label className="block text-xs font-semibold text-slate-400">
+                <label
+                  className={`block text-xs font-semibold ${
+                    isDarkMode ? 'text-slate-400' : 'text-slate-700'
+                  }`}
+                >
                   Payment Method (Step 6)
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {[
                     {
+                      id: 'card',
+                      title: 'Credit / Debit Card',
+                      subtitle: 'Stripe test checkout (Visa, MC, Amex, Apple/Google Pay)',
+                      badge: 'Instant Dispatch',
+                    },
+                    {
                       id: 'standby-account',
-                      title: 'Standby Credit Facility',
+                      title: 'Standby Facility',
                       subtitle: 'Approved 30-Day Terms (£15,000 credit limit)',
+                      badge: '30-Day Terms',
                     },
                     {
                       id: 'corporate-bacs',
-                      title: 'Direct Corporate BACS',
-                      subtitle: 'Electronic settlement on statement issue',
+                      title: 'Corporate BACS',
+                      subtitle: 'Electronic settlement on monthly statement issue',
+                      badge: 'Direct Wire',
                     },
                   ].map((m) => (
                     <div
@@ -899,34 +1284,77 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
                       onClick={() =>
                         updateForm((prev) => ({ ...prev, paymentMethod: m.id }))
                       }
-                      className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                      className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-180 hover-lift flex flex-col justify-between ${
                         form.paymentMethod === m.id
-                          ? 'border-[#3898EC] bg-sky-500/10'
+                          ? 'border-[#3898EC] bg-sky-500/10 shadow-xs ring-1 ring-[#3898EC]/30'
                           : isDarkMode
                           ? 'border-[#1a2636] bg-[#060b11]'
-                          : 'border-slate-200 bg-slate-50'
+                          : 'border-slate-200 bg-white shadow-xs hover:border-slate-300'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="w-3.5 h-3.5 rounded-full border border-[#3898EC] flex items-center justify-center">
-                          {form.paymentMethod === m.id && (
-                            <span className="w-2 h-2 rounded-full bg-[#3898EC]" />
-                          )}
-                        </span>
-                        <span className="font-bold text-xs text-white">
-                          {m.title}
-                        </span>
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <span className="w-3.5 h-3.5 rounded-full border border-[#3898EC] flex items-center justify-center">
+                              {form.paymentMethod === m.id && (
+                                <span className="w-2 h-2 rounded-full bg-[#3898EC]" />
+                              )}
+                            </span>
+                            <span
+                              className={`font-bold text-xs ${
+                                isDarkMode ? 'text-white' : 'text-slate-900'
+                              }`}
+                            >
+                              {m.title}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-500/10 text-[#3898EC] font-semibold border border-[#3898EC]/20">
+                            {m.badge}
+                          </span>
+                        </div>
+                        <p
+                          className={`text-[11px] mt-1 pl-5 ${
+                            isDarkMode ? 'text-slate-400' : 'text-slate-600 font-medium'
+                          }`}
+                        >
+                          {m.subtitle}
+                        </p>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1 pl-5">
-                        {m.subtitle}
-                      </p>
                     </div>
                   ))}
                 </div>
               </div>
 
+              {/* Stripe Hosted Checkout Callout when Card is selected */}
+              {form.paymentMethod === 'card' && (
+                <div
+                  className={`p-4 rounded-xl border flex items-start gap-3 ${
+                    isDarkMode
+                      ? 'bg-sky-500/10 border-sky-500/30 text-sky-300'
+                      : 'bg-sky-50 border-sky-200 text-sky-800'
+                  }`}
+                >
+                  <ShieldCheck className="w-5 h-5 shrink-0 text-[#3898EC] mt-0.5" />
+                  <div className="text-xs space-y-1">
+                    <p className="font-semibold text-sm">Official Stripe Hosted Checkout</p>
+                    <p className="opacity-90">
+                      Clicking &quot;Pay with Card &amp; Confirm&quot; will securely redirect you to Stripe Checkout to authorize £{form.estimatedTotal}.00. Your card details are processed directly by Stripe and never stored on NEO Transport servers.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-3 pt-1 font-mono text-[11px] opacity-80">
+                      <span>🔒 256-Bit TLS</span>
+                      <span>⚡ Real-Time Webhook Verification</span>
+                      <span>💳 Stripe Test Mode</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">
+                <label
+                  className={`block text-xs font-semibold mb-1.5 ${
+                    isDarkMode ? 'text-slate-400' : 'text-slate-700'
+                  }`}
+                >
                   Purchase Order / Reference Number (Step 6)
                 </label>
                 <input
@@ -954,28 +1382,83 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
               </div>
 
               <div className="space-y-1">
-                <span className="font-mono text-xs uppercase tracking-widest text-emerald-400 font-bold">
-                  STANDBY DISPATCH CONFIRMED
+                <span className="font-mono text-xs uppercase tracking-widest text-emerald-500 font-bold">
+                  BOOKING CONFIRMED &amp; SCHEDULED
                 </span>
                 <h2
                   className={`text-2xl font-extrabold tracking-tight ${
                     isDarkMode ? 'text-white' : 'text-slate-900'
                   }`}
                 >
-                  Ready for Instant Dispatch!
+                  Ready for Dispatch Allocation
                 </h2>
               </div>
 
               {/* Display exact generated reference */}
-              <div className="inline-flex flex-col sm:flex-row items-center gap-2 px-6 py-3 rounded-2xl bg-[#060b11] border border-emerald-500/40 shadow-inner">
-                <span className="text-slate-400 text-xs font-mono">BOOKING REFERENCE:</span>
-                <span className="font-mono text-emerald-400 font-extrabold text-xl tracking-wider">
+              <div
+                className={`inline-flex flex-col sm:flex-row items-center gap-2 px-6 py-3 rounded-2xl border ${
+                  isDarkMode
+                    ? 'bg-[#060b11] border-emerald-500/40 shadow-inner'
+                    : 'bg-emerald-50/60 border-emerald-300 shadow-xs'
+                }`}
+              >
+                <span
+                  className={`text-xs font-mono font-medium ${
+                    isDarkMode ? 'text-slate-400' : 'text-slate-600'
+                  }`}
+                >
+                  BOOKING REFERENCE:
+                </span>
+                <span className="font-mono text-emerald-500 font-extrabold text-xl tracking-wider">
                   {confirmedBooking?.reference || 'NT-24818'}
                 </span>
               </div>
 
-              <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-                Driver Marek Kowalski ({form.selectedVehicle} · GN71 XPO) is en route to {form.pickupPostcode}. Real-time corridor dispatch tracking is active.
+              {/* Payment Verification Status Badge */}
+              {(confirmedBooking?.payment_method === 'card' || form.paymentMethod === 'card') && (
+                <div
+                  className={`inline-flex flex-col sm:flex-row items-center gap-2 px-5 py-2 rounded-xl border ${
+                    confirmedBooking?.payment_status === 'paid'
+                      ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400'
+                      : 'bg-amber-500/10 border-amber-500/40 text-amber-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 font-bold text-xs">
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>
+                      {confirmedBooking?.payment_status === 'paid'
+                        ? `✓ Stripe Payment Verified (£${(confirmedBooking.amount_paid_gbp || confirmedBooking.total || form.estimatedTotal).toFixed(2)})`
+                        : 'Payment Processing via Stripe'}
+                    </span>
+                  </div>
+                  {confirmedBooking?.stripe_payment_intent_id && (
+                    <span className="font-mono text-[11px] text-slate-400">
+                      ID: {confirmedBooking.stripe_payment_intent_id}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {form.paymentMethod === 'standby-account' && (
+                <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl border bg-sky-500/10 border-[#3898EC]/30 text-[#3898EC] text-xs font-semibold">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Approved Standby Credit Facility (30-Day Terms)</span>
+                </div>
+              )}
+
+              {form.paymentMethod === 'corporate-bacs' && (
+                <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl border bg-sky-500/10 border-[#3898EC]/30 text-[#3898EC] text-xs font-semibold">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Direct Corporate BACS Terms</span>
+                </div>
+              )}
+
+              <p
+                className={`text-xs max-w-md mx-auto leading-relaxed ${
+                  isDarkMode ? 'text-slate-400' : 'text-slate-600 font-medium'
+                }`}
+              >
+                Your booking is registered in the standby corridor. Vehicle class ({form.selectedVehicle}) is scheduled for collection at {form.pickupPostcode}. Driver allocation and real-time corridor dispatch tracking will be activated upon dispatch.
               </p>
 
               {/* Action buttons on Step 7 (Done): "Track live shipment" & "Create another booking" */}
@@ -983,20 +1466,20 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onViewTracking(confirmedBooking?.id || confirmedBooking?.reference)}
-                  className="w-full sm:w-auto bg-[#3898EC] hover:bg-[#2b85d6] text-white px-7 py-3 rounded-full text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 group cursor-pointer"
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-full text-xs font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                 >
                   <MapPin className="w-3.5 h-3.5" />
                   <span>Track live shipment</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
 
                 <button
                   type="button"
                   onClick={handleCreateAnother}
-                  className={`w-full sm:w-auto px-6 py-3 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                  className={`w-full sm:w-auto px-5 py-2.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
                     isDarkMode
-                      ? 'border-slate-700 hover:bg-slate-800 text-slate-300'
-                      : 'border-slate-300 hover:bg-slate-100 text-slate-700'
+                      ? 'border-[#1e222b] hover:bg-[#161a22] text-slate-300'
+                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-advertz'
                   }`}
                 >
                   <span>Create another booking</span>
@@ -1007,16 +1490,20 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
 
           {/* Form Navigation Buttons (Steps 1-7) */}
           {currentStep < 8 && (
-            <div className="flex items-center justify-between pt-6 mt-6 border-t border-slate-800/40">
+            <div
+              className={`flex items-center justify-between pt-5 mt-5 border-t ${
+                isDarkMode ? 'border-[#1e222b]' : 'border-slate-200/80'
+              }`}
+            >
               <button
                 onClick={handlePrevStep}
                 disabled={currentStep === 1}
-                className={`px-5 py-2.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-2 ${
+                className={`px-5 py-2.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-2 cursor-pointer ${
                   currentStep === 1
-                    ? 'opacity-40 cursor-not-allowed'
+                    ? 'opacity-40 cursor-not-allowed border-slate-200 text-slate-400 bg-slate-50'
                     : isDarkMode
-                    ? 'border-slate-700 hover:bg-slate-800 text-slate-300'
-                    : 'border-slate-300 hover:bg-slate-100 text-slate-700'
+                    ? 'border-[#1e222b] hover:bg-[#161a22] text-slate-300'
+                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-advertz'
                 }`}
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
@@ -1024,11 +1511,29 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
               </button>
 
               <button
+                type="button"
                 onClick={handleNextStep}
-                className="bg-[#3898EC] hover:bg-[#2b85d6] text-white px-6 py-2.5 rounded-full text-xs font-bold shadow-md transition-all flex items-center gap-2 group cursor-pointer"
+                disabled={isSubmittingCardPayment || isVerifyingPayment}
+                aria-busy={isSubmittingCardPayment || isVerifyingPayment}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-full text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
               >
-                <span>{currentStep === 7 ? 'Confirm booking' : 'Continue'}</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                {isSubmittingCardPayment ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Connecting to Stripe...</span>
+                  </>
+                ) : currentStep === 7 && form.paymentMethod === 'card' ? (
+                  <>
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Pay £{form.estimatedTotal}.00 with Card</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </>
+                ) : (
+                  <>
+                    <span>{currentStep === 7 ? 'Confirm booking' : 'Continue'}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </>
+                )}
               </button>
             </div>
           )}
@@ -1044,10 +1549,12 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
 
           <div className="space-y-4 text-xs">
             <div className="flex justify-between items-start">
-              <span className="text-slate-400 font-medium">From</span>
+              <span className={isDarkMode ? 'text-slate-400 font-medium' : 'text-slate-600 font-medium'}>
+                From
+              </span>
               <span
                 className={`font-semibold text-right max-w-[180px] ${
-                  isDarkMode ? 'text-slate-200' : 'text-slate-800'
+                  isDarkMode ? 'text-slate-200' : 'text-slate-900 font-bold'
                 }`}
               >
                 {form.pickupPostcode}
@@ -1055,10 +1562,12 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
             </div>
 
             <div className="flex justify-between items-start">
-              <span className="text-slate-400 font-medium">To</span>
+              <span className={isDarkMode ? 'text-slate-400 font-medium' : 'text-slate-600 font-medium'}>
+                To
+              </span>
               <span
                 className={`font-semibold text-right max-w-[180px] ${
-                  isDarkMode ? 'text-slate-200' : 'text-slate-800'
+                  isDarkMode ? 'text-slate-200' : 'text-slate-900 font-bold'
                 }`}
               >
                 {form.dropoffPostcode}
@@ -1066,10 +1575,12 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
             </div>
 
             <div className="flex justify-between items-start">
-              <span className="text-slate-400 font-medium">Cargo</span>
+              <span className={isDarkMode ? 'text-slate-400 font-medium' : 'text-slate-600 font-medium'}>
+                Cargo
+              </span>
               <span
                 className={`font-semibold text-right ${
-                  isDarkMode ? 'text-slate-200' : 'text-slate-800'
+                  isDarkMode ? 'text-slate-200' : 'text-slate-900'
                 }`}
               >
                 {form.cargoDescription}
@@ -1077,10 +1588,12 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
             </div>
 
             <div className="flex justify-between items-start">
-              <span className="text-slate-400 font-medium">Vehicle</span>
+              <span className={isDarkMode ? 'text-slate-400 font-medium' : 'text-slate-600 font-medium'}>
+                Vehicle
+              </span>
               <span
                 className={`font-semibold text-right ${
-                  isDarkMode ? 'text-slate-200' : 'text-slate-800'
+                  isDarkMode ? 'text-slate-200' : 'text-slate-900 font-semibold'
                 }`}
               >
                 {form.selectedVehicle}
@@ -1088,26 +1601,44 @@ export const BookingWizard: React.FC<NewBookingViewProps> = ({
             </div>
 
             <div className="flex justify-between items-start">
-              <span className="text-slate-400 font-medium">Service</span>
+              <span className={isDarkMode ? 'text-slate-400 font-medium' : 'text-slate-600 font-medium'}>
+                Service
+              </span>
               <span
                 className={`font-semibold text-right ${
-                  isDarkMode ? 'text-slate-200' : 'text-slate-800'
+                  isDarkMode ? 'text-slate-200' : 'text-slate-900 font-semibold'
                 }`}
               >
                 {form.selectedService}
               </span>
             </div>
 
-            <div className="pt-6 border-t border-slate-700/40">
+            <div
+              className={`pt-6 border-t ${
+                isDarkMode ? 'border-slate-700/40' : 'border-slate-100'
+              }`}
+            >
               <div className="flex justify-between items-baseline">
-                <span className="text-xs text-slate-400 font-medium">
+                <span
+                  className={`text-xs font-semibold ${
+                    isDarkMode ? 'text-slate-400' : 'text-slate-600'
+                  }`}
+                >
                   Estimated total
                 </span>
-                <span className="text-3xl font-extrabold text-white">
+                <span
+                  className={`text-3xl font-extrabold font-mono ${
+                    isDarkMode ? 'text-white' : 'text-slate-900'
+                  }`}
+                >
                   £{form.estimatedTotal}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p
+                className={`text-[11px] mt-1 ${
+                  isDarkMode ? 'text-slate-400' : 'text-slate-500 font-medium'
+                }`}
+              >
                 Includes standby account pricing
               </p>
             </div>

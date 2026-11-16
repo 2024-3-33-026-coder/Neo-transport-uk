@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Download, FileText, CheckCircle2 } from 'lucide-react';
+import { Search, Download, FileText, CheckCircle2, MapPin, Truck, ArrowRight } from 'lucide-react';
 import { Booking, ViewMode } from '../../types';
 
 interface BookingHistoryViewProps {
@@ -21,7 +21,9 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
   const [selectedFilter, setSelectedFilter] = useState<'All' | 'In transit' | 'Delivered' | 'Cancelled' | 'Scheduled'>('All');
   const [selectedPod, setSelectedPod] = useState<Booking | null>(null);
 
-  const cardBg = isDarkMode ? 'bg-[#0b121c] border-[#172334]' : 'bg-white border-slate-200';
+  const cardBg = isDarkMode
+    ? 'bg-[#111827] border-[#1e293b]'
+    : 'bg-white border border-slate-200/80 shadow-advertz';
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((b) => {
@@ -66,23 +68,24 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
   };
 
   const handleDownloadPod = (b: Booking) => {
+    const isDelivered = b.status === 'DELIVERED';
     const podText = [
       '================================================================',
-      'NEO TRANSPORT — OFFICIAL PROOF OF DELIVERY (POD)',
+      'NEO TRANSPORT — PROOF OF DELIVERY (POD) ADVISORY',
       '================================================================',
       `Booking Reference: ${b.reference}`,
       `Date:              ${b.date}`,
       `Origin:            ${b.origin}`,
       `Destination:       ${b.destination}`,
       `Vehicle:           ${b.vehicle}`,
-      `Goods / Cargo:     ${b.cargo || 'Palletised parts'}`,
-      `Delivery Time:     ${b.deliveryTime || '14:20 BST'}`,
-      `Driver:            ${b.driver?.name || 'Marek Kowalski'} (${b.driver?.registration || 'GN71 XPO'})`,
+      `Goods / Cargo:     ${b.cargo || 'Palletised goods'}`,
+      `Status:            ${b.status}`,
+      `Delivery Time:     ${isDelivered ? (b.deliveryTime || 'Recorded') : 'Pending delivery'}`,
+      `Driver:            ${b.driver?.name ? `${b.driver.name} (${b.driver.registration || 'Reg pending'})` : 'Driver unassigned'}`,
       '----------------------------------------------------------------',
-      'Consignee Signoff: J. Higgins (Receiving Lead)',
-      'Signature Status:  VERIFIED DIGITAL STYLUS SIGNATURE CAPTURED',
-      'GPS Geofence:      Lat 52.4862° N, Lon 1.8904° W (On-site Dock)',
-      'Timestamp:         2026-08-02T14:20:18Z',
+      'Consignee Signoff: Evidence not on file (consignee details unavailable)',
+      'Signature Status:  NO VERIFIED SIGNATURE ON FILE',
+      'Delivery Evidence: Operational verification pending signed document upload',
       '================================================================',
     ].join('\n');
 
@@ -90,7 +93,7 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `POD_${b.reference}_Signed.txt`;
+    link.download = `POD_${b.reference}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -101,14 +104,11 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
       {/* Title & Export */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-4 h-0.5 bg-[#3898EC]" />
-            <span className="font-mono text-xs uppercase tracking-widest text-[#3898EC] font-semibold">
-              ARCHIVE
-            </span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-blue-600 bg-blue-50/80 border border-blue-200/60 mb-2">
+            <span>Consignments archive · Records</span>
           </div>
           <h1
-            className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
+            className={`text-2xl sm:text-3xl font-bold tracking-tight ${
               isDarkMode ? 'text-white' : 'text-slate-900'
             }`}
           >
@@ -118,19 +118,19 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
 
         <button
           onClick={handleExportCsv}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
             isDarkMode
-              ? 'border-slate-700/80 hover:bg-slate-800 text-slate-200'
-              : 'border-slate-300 hover:bg-slate-100 text-slate-800'
+              ? 'border-[#1e222b] bg-[#12151b] hover:bg-[#18202c] text-slate-200'
+              : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-advertz'
           }`}
         >
-          <Download className="w-4 h-4 text-[#3898EC]" />
+          <Download className="w-4 h-4 text-blue-600" />
           <span>Export CSV</span>
         </button>
       </div>
 
-      {/* Main Table Card (Matching Screenshot 7) */}
-      <div className={`p-5 sm:p-6 rounded-2xl border ${cardBg}`}>
+      {/* Main Table Card */}
+      <div className={`p-6 sm:p-7 rounded-2xl border ${cardBg}`}>
         {/* Search & Filter bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="relative flex-1 max-w-md">
@@ -140,10 +140,10 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
               placeholder="Search reference, route..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 rounded-xl text-xs font-medium border transition-colors ${
+              className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-xs font-medium border transition-colors ${
                 isDarkMode
-                  ? 'bg-[#060b11] border-[#1a2636] text-white focus:border-[#3898EC]'
-                  : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#3898EC]'
+                  ? 'bg-[#0f1115] border-[#1e222b] text-white focus:border-blue-500'
+                  : 'bg-white border-slate-200 text-slate-900 shadow-advertz focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15'
               }`}
             />
           </div>
@@ -153,12 +153,12 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
               <button
                 key={filter}
                 onClick={() => setSelectedFilter(filter)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors shrink-0 cursor-pointer ${
                   selectedFilter === filter
-                    ? 'bg-[#3898EC] text-white font-semibold'
+                    ? 'bg-blue-600 text-white font-medium shadow-xs'
                     : isDarkMode
-                    ? 'bg-[#090e17] text-slate-400 border border-slate-800 hover:text-white'
-                    : 'bg-slate-100 text-slate-600 border border-slate-200 hover:text-slate-900'
+                    ? 'bg-[#12151b] text-slate-400 border border-[#1e222b] hover:text-white'
+                    : 'bg-white text-slate-600 border border-slate-200 shadow-advertz hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
                 {filter}
@@ -167,90 +167,251 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
           </div>
         </div>
 
-        {/* Bookings Table */}
-        <div className="overflow-x-auto">
+        {/* Mobile Card Stack (screens < md) */}
+        <div className="block md:hidden space-y-3">
+          {filteredBookings.length === 0 ? (
+            <div className="text-center py-8 text-slate-400 text-xs">
+              No bookings found matching current criteria.
+            </div>
+          ) : (
+            filteredBookings.map((b) => (
+              <div
+                key={b.id}
+                className={`p-5 rounded-2xl border transition-all ${
+                  isDarkMode ? 'bg-[#0f1115] border-[#1e222b]' : 'bg-white border-slate-200/80 shadow-advertz'
+                }`}
+              >
+                {/* Header row: Reference + Status Pill */}
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-sm font-semibold text-blue-600">
+                      {b.reference}
+                    </span>
+                    <span className="text-slate-500 text-xs font-mono">· {b.date}</span>
+                  </div>
+
+                  {b.status === 'IN TRANSIT' && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200/80 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                      <span>In transit</span>
+                    </span>
+                  )}
+                  {b.status === 'DELIVERED' && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1">
+                      <span>Delivered</span>
+                    </span>
+                  )}
+                  {b.status === 'CANCELLED' && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200/80 flex items-center gap-1">
+                      <span>Cancelled</span>
+                    </span>
+                  )}
+                  {b.status === 'SCHEDULED' && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/80 flex items-center gap-1">
+                      <span>Scheduled</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Route */}
+                <div className="space-y-1.5 py-2.5 border-y border-slate-100 dark:border-slate-800/40 text-xs">
+                  <div className="flex items-start gap-2">
+                    <div className="w-4 h-4 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                      <MapPin className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <span className={`font-medium line-clamp-1 ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                      {b.origin}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-4 h-4 rounded-full bg-rose-500/15 border border-rose-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                      <MapPin className="w-2.5 h-2.5 text-rose-600 dark:text-rose-400" />
+                    </div>
+                    <span className={`font-medium line-clamp-1 ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                      {b.destination}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Specs and action buttons */}
+                <div className="flex items-center justify-between pt-3 gap-2">
+                  <div className="text-xs">
+                    <span className="text-slate-400 text-[11px] block">{b.vehicle}</span>
+                    <strong className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+                      £{b.total}
+                    </strong>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPod(b)}
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer ${
+                        isDarkMode
+                          ? 'border-slate-700 bg-slate-800/80 text-slate-200 hover:text-white'
+                          : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-advertz'
+                      }`}
+                    >
+                      {b.status === 'DELIVERED' ? 'POD' : 'POD (Pending)'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onRebook(b);
+                        onNavigate('new-booking');
+                      }}
+                      className="px-4 py-1.5 rounded-full text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-xs active:scale-95 transition-all cursor-pointer"
+                    >
+                      Rebook
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Bookings Table (screens >= md) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr
-                className={`border-b font-mono text-[10px] uppercase tracking-wider ${
-                  isDarkMode ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'
+                className={`border-b text-xs font-semibold ${
+                  isDarkMode ? 'border-[#1e222b] text-slate-400' : 'border-slate-200/80 bg-slate-50/60 text-slate-600'
                 }`}
               >
-                <th className="py-3 px-3">REFERENCE</th>
-                <th className="py-3 px-3">DATE</th>
-                <th className="py-3 px-3">ROUTE</th>
-                <th className="py-3 px-3">VEHICLE</th>
-                <th className="py-3 px-3">TOTAL</th>
-                <th className="py-3 px-3">STATUS</th>
-                <th className="py-3 px-3 text-right">ACTIONS</th>
+                <th className="py-3 px-4">Reference</th>
+                <th className="py-3 px-4">Date</th>
+                <th className="py-3 px-4">Route</th>
+                <th className="py-3 px-4">Vehicle</th>
+                <th className="py-3 px-4">Total</th>
+                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/40">
-              {filteredBookings.map((b) => (
+            <tbody className={`divide-y ${isDarkMode ? 'divide-[#1e222b]' : 'divide-slate-100'}`}>
+              {filteredBookings.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-10 text-center text-slate-500 text-xs">
+                    No bookings found matching current criteria.
+                  </td>
+                </tr>
+              ) : (
+                filteredBookings.map((b) => (
                 <tr
                   key={b.id}
                   className={`transition-colors ${
-                    isDarkMode ? 'hover:bg-[#0e1622]/60' : 'hover:bg-slate-50'
+                    isDarkMode ? 'hover:bg-[#12151b]' : 'hover:bg-slate-50/80'
                   }`}
                 >
-                  <td className="py-4 px-3 font-mono font-bold text-slate-200">
+                  <td
+                    className={`py-3.5 px-4 font-mono font-medium ${
+                      isDarkMode ? 'text-slate-200' : 'text-slate-900'
+                    }`}
+                  >
                     {b.reference}
                   </td>
-                  <td className="py-4 px-3 text-slate-400">
+                  <td
+                    className={`py-3.5 px-4 ${
+                      isDarkMode ? 'text-slate-400' : 'text-slate-600'
+                    }`}
+                  >
                     {b.date}
                   </td>
-                  <td className="py-4 px-3 font-semibold text-slate-200">
+                  <td
+                    className={`py-3.5 px-4 font-medium ${
+                      isDarkMode ? 'text-slate-200' : 'text-slate-900'
+                    }`}
+                  >
                     {b.origin.split(' ')[0]} → {b.destination.split(' ')[0]}
                   </td>
-                  <td className="py-4 px-3 text-slate-400">
+                  <td
+                    className={`py-3.5 px-4 ${
+                      isDarkMode ? 'text-slate-400' : 'text-slate-600'
+                    }`}
+                  >
                     {b.vehicle}
                   </td>
-                  <td className="py-4 px-3 font-extrabold text-slate-200 font-mono">
+                  <td
+                    className={`py-3.5 px-4 font-medium font-mono tabular-nums ${
+                      isDarkMode ? 'text-slate-200' : 'text-slate-900'
+                    }`}
+                  >
                     £{b.total}
                   </td>
-                  <td className="py-4 px-3">
+                  <td className="py-3.5 px-4">
                     {b.status === 'IN TRANSIT' && (
-                      <span className="font-mono text-[10px] font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 uppercase">
-                        IN TRANSIT
+                      <span
+                        className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 ${
+                          isDarkMode
+                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                            : 'bg-blue-50 text-blue-700 border-blue-200/80'
+                        }`}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                        In transit
                       </span>
                     )}
                     {b.status === 'DELIVERED' && (
-                      <span className="font-mono text-[10px] font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">
-                        DELIVERED
+                      <span
+                        className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${
+                          isDarkMode
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                        }`}
+                      >
+                        Delivered
                       </span>
                     )}
                     {b.status === 'CANCELLED' && (
-                      <span className="font-mono text-[10px] font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase">
-                        CANCELLED
+                      <span
+                        className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${
+                          isDarkMode
+                            ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                            : 'bg-rose-50 text-rose-700 border-rose-200/80'
+                        }`}
+                      >
+                        Cancelled
                       </span>
                     )}
                     {b.status === 'SCHEDULED' && (
-                      <span className="font-mono text-[10px] font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase">
-                        SCHEDULED
+                      <span
+                        className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${
+                          isDarkMode
+                            ? 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                            : 'bg-slate-100 text-slate-700 border-slate-200/80'
+                        }`}
+                      >
+                        Scheduled
                       </span>
                     )}
                   </td>
-                  <td className="py-4 px-3 text-right">
-                    <div className="flex items-center justify-end gap-3 font-medium">
+                  <td className="py-3.5 px-4 text-right">
+                    <div className="flex items-center justify-end gap-2 font-medium">
                       <button
                         onClick={() => setSelectedPod(b)}
-                        className="text-slate-400 hover:text-slate-200 transition-colors"
+                        className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+                          isDarkMode
+                            ? 'border-slate-700 bg-slate-800/80 text-slate-200 hover:text-white'
+                            : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-advertz'
+                        }`}
                       >
-                        POD
+                        {b.status === 'DELIVERED' ? 'POD' : 'POD (Pending)'}
                       </button>
                       <button
                         onClick={() => {
                           onRebook(b);
                           onNavigate('new-booking');
                         }}
-                        className="text-[#3898EC] hover:underline transition-colors font-semibold"
+                        className="px-3.5 py-1 rounded-full text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors cursor-pointer"
                       >
                         Rebook
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
@@ -258,52 +419,79 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
 
       {/* POD Modal */}
       {selectedPod && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className={`p-6 rounded-2xl border max-w-md w-full ${cardBg} shadow-2xl space-y-4`}>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-700/40">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className={`p-6 sm:p-7 rounded-3xl border max-w-md w-full ${cardBg} shadow-advertz-lg space-y-4`}>
+            <div
+              className={`flex items-center justify-between pb-3 border-b ${
+                isDarkMode ? 'border-[#1e222b]' : 'border-slate-200/80'
+              }`}
+            >
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-[#3898EC]" />
-                <h3 className="font-bold text-sm text-white">
+                <FileText className="w-4 h-4 text-blue-600" />
+                <h3
+                  className={`font-bold text-sm tracking-tight ${
+                    isDarkMode ? 'text-white' : 'text-slate-900'
+                  }`}
+                >
                   Proof of Delivery — {selectedPod.reference}
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedPod(null)}
-                className="text-slate-400 hover:text-white text-xs font-mono"
+                className={`p-1 rounded-full transition-colors cursor-pointer ${
+                  isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                }`}
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#060b11] border border-slate-800 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-400">
-                <span>Route:</span>
-                <span className="text-white font-semibold">{selectedPod.origin} → {selectedPod.destination}</span>
-              </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Delivered at:</span>
-                <span className="text-white font-mono">{selectedPod.deliveryTime || '14:20 BST'}</span>
-              </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Consignee Signature:</span>
-                <span className="text-emerald-400 font-mono flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Verified Digital Stylus
+            <div
+              className={`p-4 rounded-2xl border space-y-2.5 text-xs ${
+                isDarkMode
+                  ? 'bg-[#0f1115] border-[#1e222b]'
+                  : 'bg-slate-50/70 border-slate-200/80'
+              }`}
+            >
+              <div className="flex justify-between">
+                <span className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>Route:</span>
+                <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {selectedPod.origin} → {selectedPod.destination}
                 </span>
               </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Receiver:</span>
-                <span className="text-white">J. Higgins (Receiving Lead)</span>
+              <div className="flex justify-between">
+                <span className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>Delivered at:</span>
+                <span className={`font-mono tabular-nums ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {selectedPod.deliveryTime || '14:20 BST'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>Consignee Signature:</span>
+                <span className="font-mono text-slate-500 text-right">
+                  Signature unavailable (not on file)
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>Receiver Signoff:</span>
+                <span className={isDarkMode ? 'text-slate-500' : 'text-slate-500'}>Evidence not on file</span>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-end gap-2 pt-3 border-t border-slate-800/80">
+            <div
+              className={`flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-3 border-t ${
+                isDarkMode ? 'border-[#1e222b]' : 'border-slate-200/80'
+              }`}
+            >
               <button
                 onClick={() => handleDownloadPod(selectedPod)}
-                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all cursor-pointer"
+                className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+                  isDarkMode
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200/80 hover:bg-emerald-100 shadow-advertz'
+                }`}
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Download Signed POD</span>
+                <span>Download POD Summary</span>
               </button>
 
               <button
@@ -315,14 +503,22 @@ export const BookingHistoryView: React.FC<BookingHistoryViewProps> = ({
                     onNavigate('documents');
                   }
                 }}
-                className="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold bg-[#3898EC]/10 text-[#3898EC] border border-[#3898EC]/30 hover:bg-[#3898EC]/20 transition-all cursor-pointer"
+                className={`w-full sm:w-auto px-4 py-2 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+                  isDarkMode
+                    ? 'bg-blue-500/10 text-blue-400 border-blue-500/25 hover:bg-blue-500/20'
+                    : 'bg-blue-50 text-blue-700 border-blue-200/80 hover:bg-blue-100 shadow-advertz'
+                }`}
               >
                 <span>View in Documents →</span>
               </button>
 
               <button
                 onClick={() => setSelectedPod(null)}
-                className="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold border border-slate-700 hover:bg-slate-800 text-slate-300 transition-colors cursor-pointer"
+                className={`w-full sm:w-auto px-4 py-2 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+                  isDarkMode
+                    ? 'border-[#1e222b] hover:bg-[#161a22] text-slate-300'
+                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-advertz'
+                }`}
               >
                 Close
               </button>

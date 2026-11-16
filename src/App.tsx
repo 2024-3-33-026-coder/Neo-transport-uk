@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Phone,
   ArrowRight,
@@ -8,6 +8,7 @@ import {
   Building2,
   FileCheck,
   Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { Portal } from './Portal';
 import { saveStandbyApplication, isSupabaseConfigured } from './lib/supabase';
@@ -38,8 +39,12 @@ export function Field({
 }: FieldProps) {
   return (
     <div className={`space-y-1.5 ${className}`}>
-      <label className="block text-xs font-semibold text-slate-400">
-        {label} {required && <span className="text-[#3898EC]">*</span>}
+      <label
+        className={`block text-xs font-medium ${
+          isDarkMode ? 'text-slate-300' : 'text-slate-700'
+        }`}
+      >
+        {label} {required && <span className="text-[#206bc4]">*</span>}
       </label>
       <input
         type={type}
@@ -48,10 +53,10 @@ export function Field({
         placeholder={placeholder}
         required={required}
         disabled={disabled}
-        className={`w-full text-xs p-2.5 rounded-xl border transition-colors ${
+        className={`w-full text-xs p-2.5 rounded-lg border transition-colors ${
           isDarkMode
-            ? 'border-slate-700 bg-[#060b11] text-white focus:outline-none focus:border-[#3898EC]'
-            : 'border-slate-300 bg-white text-slate-900 focus:outline-none focus:border-[#3898EC]'
+            ? 'border-[#1e2229] bg-[#0b0d11] text-white focus:outline-none focus:border-[#206bc4]'
+            : 'border-slate-300 bg-white text-slate-900 focus:outline-none focus:border-[#206bc4]'
         }`}
       />
     </div>
@@ -81,6 +86,7 @@ export function OnboardingForm({ isDarkMode, onOpenPortal }: OnboardingFormProps
   const [accepted, setAccepted] = useState<boolean>(true);
 
   const [submittedCode, setSubmittedCode] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const availableCarriers = ['DPD', 'DHL', 'FedEx', 'Palletways', 'DX Freight', 'Tuffnells', 'Evri'];
 
@@ -98,6 +104,7 @@ export function OnboardingForm({ isDarkMode, onOpenPortal }: OnboardingFormProps
     e.preventDefault();
     if (!accepted || isSubmitting) return;
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       const saved = await saveStandbyApplication({
         company_name: companyName,
@@ -114,49 +121,52 @@ export function OnboardingForm({ isDarkMode, onOpenPortal }: OnboardingFormProps
         selected_carriers: selectedCarriers,
         volume: volume,
       });
-      setSubmittedCode(saved?.account_code || 'NEO-SB-2026');
-    } catch {
-      setSubmittedCode('NEO-SB-2026');
+      if (saved?.success) {
+        setSubmittedCode('STATUS: PENDING REVIEW');
+      }
+    } catch (err: any) {
+      console.error('[Onboarding] Standby application submission failed:', err);
+      setSubmitError(err?.message || 'Standby application submission failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const cardBg = isDarkMode ? 'bg-[#0b121c] border-[#172334]' : 'bg-white border-slate-200';
+  const cardBg = isDarkMode ? 'bg-[#111827] border-[#1e293b]' : 'bg-white border-slate-200/80 shadow-advertz-lg';
 
   if (submittedCode) {
     return (
       <div
-        className={`p-6 sm:p-10 rounded-3xl border text-center space-y-6 transition-all shadow-xl ${
-          isDarkMode ? 'bg-[#09111c] border-emerald-500/30' : 'bg-emerald-50/60 border-emerald-200'
+        className={`p-8 sm:p-12 rounded-3xl border text-center space-y-6 transition-all ${
+          isDarkMode ? 'bg-[#111827] border-emerald-500/30' : 'bg-emerald-50/70 border-emerald-200 shadow-advertz-lg'
         }`}
       >
-        <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto">
+        <div className="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-8 h-8" />
         </div>
 
-        <div className="space-y-1.5">
-          <span className="font-mono text-xs uppercase tracking-widest text-emerald-400 font-bold">
-            STANDBY ACCOUNT PRE-APPROVED & ACTIVE
+        <div className="space-y-2">
+          <span className="font-mono text-xs text-emerald-600 dark:text-emerald-400 font-semibold tracking-wide">
+            STANDBY APPLICATION SUBMITTED — PENDING REVIEW
           </span>
-          <h3 className={`text-2xl sm:text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+          <h3 className={`text-2xl sm:text-3xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
             {companyName}
           </h3>
-          <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-            £15,000 credit facility assigned · 30-Day terms active · 24/7 dedicated dispatch priority line: 0800 246 8135.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+            Your standby facility application has been securely submitted and is queued for operations review. Credit facility allocation and priority dispatch activation typically complete within 15 minutes during operating hours.
           </p>
         </div>
 
-        <div className="inline-block px-6 py-3 rounded-2xl bg-[#060b11] border border-emerald-500/40 text-emerald-400 font-mono text-2xl font-extrabold tracking-wider shadow-inner">
-          {submittedCode}
+        <div className="inline-block px-5 py-2.5 rounded-full bg-white dark:bg-[#0b0f19] border border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 font-mono text-xs font-semibold tracking-wider shadow-xs">
+          STATUS: PENDING REVIEW
         </div>
 
         <div className="pt-2">
           <button
             onClick={onOpenPortal}
-            className="bg-[#3898EC] hover:bg-[#2b85d6] text-white px-8 py-3 rounded-full text-xs font-bold transition-all shadow-lg flex items-center gap-2 mx-auto group"
+            className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-7 py-3 rounded-full text-xs sm:text-sm font-medium transition-all flex items-center gap-2 mx-auto cursor-pointer shadow-xs"
           >
-            <span>Continue to Customer Portal →</span>
+            <span>Continue to customer portal →</span>
           </button>
         </div>
       </div>
@@ -164,26 +174,30 @@ export function OnboardingForm({ isDarkMode, onOpenPortal }: OnboardingFormProps
   }
 
   return (
-    <form onSubmit={handleSubmit} className={`p-6 sm:p-8 rounded-3xl border shadow-xl ${cardBg} space-y-6`}>
-      <div className="space-y-1">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="w-4 h-0.5 bg-[#3898EC]" />
-          <span className="font-mono text-xs uppercase tracking-widest text-[#3898EC] font-semibold">
-            STANDBY FACILITY ONBOARDING
-          </span>
+    <form onSubmit={handleSubmit} className={`p-7 sm:p-10 rounded-3xl border ${cardBg} space-y-7`}>
+      {submitError && (
+        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{submitError}</span>
         </div>
-        <h3 className={`text-xl sm:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-          60-Second Standby Account Application
+      )}
+      <div className="space-y-1">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-blue-600 bg-blue-50/80 border border-blue-200/60 mb-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+          <span>Standby facility onboarding</span>
+        </div>
+        <h3 className={`text-2xl sm:text-3xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+          Standby account application
         </h3>
-        <p className="text-xs text-slate-400">
-          £0 fee · 30-day terms pre-cleared · No monthly minimum commitment.
+        <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+          £0 standing fee · 30-day terms pre-cleared · No monthly minimum commitment.
         </p>
       </div>
 
       {/* 11 Controlled Fields in clean 2-column grid */}
       <div className="space-y-4">
-        <h4 className="font-mono text-xs text-[#3898EC] font-semibold uppercase tracking-wider">
-          1. Company & Primary Collection Depot
+        <h4 className="text-xs text-blue-600 font-semibold tracking-wide">
+          1. Company &amp; primary collection depot
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field
@@ -224,8 +238,8 @@ export function OnboardingForm({ isDarkMode, onOpenPortal }: OnboardingFormProps
           </div>
         </div>
 
-        <h4 className="font-mono text-xs text-[#3898EC] font-semibold uppercase tracking-wider pt-2">
-          2. Operations & Dispatch Contacts
+        <h4 className="font-mono text-xs text-[#206bc4] font-medium tracking-wide pt-2">
+          2. Operations &amp; dispatch contacts
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field
@@ -274,13 +288,13 @@ export function OnboardingForm({ isDarkMode, onOpenPortal }: OnboardingFormProps
           />
         </div>
 
-        <h4 className="font-mono text-xs text-[#3898EC] font-semibold uppercase tracking-wider pt-2">
-          3. Current Carrier Profile & Contingency Volume
+        <h4 className="font-mono text-xs text-[#206bc4] font-medium tracking-wide pt-2">
+          3. Current carrier profile &amp; contingency volume
         </h4>
 
         {/* Selected Carriers */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-semibold text-slate-400">
+          <label className={`block text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-700'}`}>
             Current Primary Carriers (Select carriers to backup)
           </label>
           <div className="flex flex-wrap gap-2 pt-1">
@@ -291,11 +305,11 @@ export function OnboardingForm({ isDarkMode, onOpenPortal }: OnboardingFormProps
                   type="button"
                   key={carrier}
                   onClick={() => handleCarrierToggle(carrier)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-mono transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
                     isSelected
-                      ? 'bg-[#3898EC] text-white font-semibold'
+                      ? 'bg-[#206bc4] text-white font-medium'
                       : isDarkMode
-                      ? 'bg-[#060b11] text-slate-400 border border-slate-700 hover:text-white'
+                      ? 'bg-[#0b0d11] text-slate-400 border border-[#1e2229] hover:text-white'
                       : 'bg-slate-100 text-slate-600 border border-slate-200 hover:text-slate-900'
                   }`}
                 >
@@ -308,7 +322,7 @@ export function OnboardingForm({ isDarkMode, onOpenPortal }: OnboardingFormProps
 
         {/* Volume */}
         <div className="space-y-1.5 pt-2">
-          <label className="block text-xs font-semibold text-slate-400">
+          <label className={`block text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-700'}`}>
             Estimated Emergency / Standby Freight Volume
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -317,12 +331,12 @@ export function OnboardingForm({ isDarkMode, onOpenPortal }: OnboardingFormProps
                 type="button"
                 key={v}
                 onClick={() => setVolume(v)}
-                className={`py-2 px-3 rounded-xl text-xs font-medium border text-center transition-all ${
+                className={`py-2.5 px-3.5 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer ${
                   volume === v
-                    ? 'border-[#3898EC] bg-sky-500/10 text-[#3898EC] font-semibold'
+                    ? 'border-blue-600 bg-blue-50 text-blue-700 font-semibold shadow-xs'
                     : isDarkMode
-                    ? 'border-slate-700 bg-[#060b11] text-slate-400 hover:text-white'
-                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:text-slate-900'
+                    ? 'border-[#1e293b] bg-[#111827] text-slate-300 hover:text-white'
+                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-advertz'
                 }`}
               >
                 {v}
@@ -339,33 +353,33 @@ export function OnboardingForm({ isDarkMode, onOpenPortal }: OnboardingFormProps
             required
             checked={accepted}
             onChange={(e) => setAccepted(e.target.checked)}
-            className="w-4 h-4 mt-0.5 rounded text-[#3898EC] accent-[#3898EC]"
+            className="w-4 h-4 mt-0.5 rounded border-slate-300 accent-blue-600"
           />
-          <label htmlFor="terms" className="text-xs text-slate-400 leading-relaxed cursor-pointer select-none">
+          <label htmlFor="terms" className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed cursor-pointer select-none">
             I confirm I am an authorized representative of {companyName} and accept NEO Transport's Standby B2B Terms (£0 standing fee, 30-day net invoicing on emergency dispatch).
           </label>
         </div>
       </div>
 
-      <div className="pt-2 flex items-center justify-between border-t border-slate-700/40">
-        <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-glow" />
-          Pre-approved credit line: £15,000
+      <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-100 dark:border-[#1e293b]">
+        <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+          <span>Pre-approved credit line: £15,000</span>
         </span>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="bg-[#3898EC] hover:bg-[#2b85d6] text-white px-7 py-2.5 rounded-full text-xs font-bold transition-all shadow-md flex items-center gap-2 group disabled:opacity-60"
+          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-6 py-3 rounded-full text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-2 group disabled:opacity-60 whitespace-nowrap cursor-pointer shrink-0 shadow-xs active:scale-[0.99]"
         >
           {isSubmitting ? (
             <>
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>Activating Standby...</span>
+              <span>Activating standby...</span>
             </>
           ) : (
             <>
-              <span>Submit & Activate Standby</span>
+              <span>Submit &amp; activate standby</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </>
           )}
@@ -376,9 +390,25 @@ export function OnboardingForm({ isDarkMode, onOpenPortal }: OnboardingFormProps
 }
 
 export default function App() {
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
-  const [showPortal, setShowPortal] = useState<boolean>(false);
-  const [portalInitialLoggedIn, setPortalInitialLoggedIn] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [showPortal, setShowPortal] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return Boolean(params.get('payment') || params.get('bookingId'));
+    }
+    return false;
+  });
+  const [portalInitialLoggedIn, setPortalInitialLoggedIn] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return Boolean(params.get('payment') || params.get('bookingId'));
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDarkMode);
+  }, [isDarkMode]);
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => !prev);
@@ -400,9 +430,7 @@ export default function App() {
   };
 
   const handleEnterDemoPortal = () => {
-    // Only allow instant demo entrance if Supabase is completely unconfigured.
-    // In production (when configured), user must authenticate.
-    setPortalInitialLoggedIn(!isSupabaseConfigured);
+    setPortalInitialLoggedIn(false);
     setShowPortal(true);
   };
 
@@ -425,41 +453,39 @@ export default function App() {
     >
       {/* Top Navigation Bar */}
       <nav
-        className={`w-full border-b sticky top-0 z-30 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between transition-colors ${
+        className={`w-full border-b sticky top-0 z-30 px-4 sm:px-8 py-3.5 flex items-center justify-between transition-colors ${
           isDarkMode
-            ? 'bg-[#060b11]/90 border-[#172334]'
-            : 'bg-white/95 border-slate-200 shadow-xs'
+            ? 'bg-[#0b0f19]/95 backdrop-blur-sm border-[#1e293b]'
+            : 'bg-white/95 backdrop-blur-sm border-slate-200/80 shadow-advertz'
         }`}
       >
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 relative flex items-center justify-center">
-              <svg viewBox="0 0 32 32" className="w-8 h-8 fill-none">
-                <path d="M6 10L14 4L18 7L10 13L6 10Z" fill="#3898EC" />
-                <path d="M14 28L22 22L26 25L18 31L14 28Z" fill="#3898EC" />
-                <path d="M10 13L18 7L26 13L18 19L10 13Z" fill="#2b85d6" />
-                <path d="M6 19L14 13L18 16L10 22L6 19Z" fill="#3898EC" />
-                <path d="M14 19L22 13L26 16L18 22L14 19Z" fill="#60a5fa" />
-              </svg>
-            </div>
-            <span className="font-extrabold tracking-tight text-lg uppercase font-sans">
-              NEO TRANSPORT
-            </span>
-          </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <a href="#hero" className="flex items-center shrink-0" aria-label="NEO Transport Home">
+            <img
+              src={
+                isDarkMode
+                  ? '/brand/logos/neo-transport-full-blue-white.svg'
+                  : '/brand/logos/neo-transport-full-blue-navy.svg'
+              }
+              alt="NEO TRANSPORT"
+              className="w-[126px] min-[360px]:w-[140px] sm:w-[185px] md:w-[205px] h-auto object-contain shrink-0"
+              style={{ aspectRatio: '1310.75 / 191.82' }}
+            />
+          </a>
 
-          <div className="hidden lg:block h-4 w-px bg-slate-700/60 mx-1" />
+          <div className="hidden lg:block h-4 w-px bg-slate-300 dark:bg-slate-700/60 mx-1" />
 
           <span
-            className={`hidden lg:inline-block font-mono text-[10px] tracking-widest uppercase ${
-              isDarkMode ? 'text-slate-400' : 'text-slate-500 font-medium'
+            className={`hidden lg:inline-block font-mono text-[10px] tracking-wider uppercase ${
+              isDarkMode ? 'text-slate-400' : 'text-slate-500'
             }`}
           >
-            EMERGENCY FREIGHT & RAPID RESPONSE
+            Emergency Freight &amp; Rapid Response
           </span>
         </div>
 
-        {/* Right Nav Items: Accessible on both Mobile (<640px) and Desktop */}
-        <div className="flex items-center gap-2 sm:gap-6">
+        {/* Right Nav Items */}
+        <div className="flex items-center gap-2.5 sm:gap-4">
           <a
             href="#coverage"
             className={`hidden md:block text-xs font-medium transition-colors ${
@@ -477,18 +503,18 @@ export default function App() {
             How it works
           </a>
 
-          {/* Theme switcher pill */}
+          {/* Theme switcher */}
           <div
-            className={`flex items-center p-0.5 rounded-full border ${
+            className={`flex items-center p-1 rounded-full border transition-colors ${
               isDarkMode
-                ? 'bg-[#0b121c] border-slate-700/60'
-                : 'bg-slate-100 border-slate-300'
+                ? 'bg-[#111827] border-[#1e293b]'
+                : 'bg-slate-100/80 border-slate-200'
             }`}
           >
             <button
-              onClick={toggleTheme}
-              className={`p-1.5 rounded-full transition-all ${
-                !isDarkMode ? 'bg-white text-amber-500 shadow-xs' : 'text-slate-400'
+              onClick={isDarkMode ? toggleTheme : undefined}
+              className={`p-1.5 rounded-full transition-all cursor-pointer ${
+                !isDarkMode ? 'bg-white text-slate-900 shadow-advertz' : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Light mode"
               aria-label="Light mode"
@@ -496,9 +522,9 @@ export default function App() {
               <Sun className="w-3.5 h-3.5" />
             </button>
             <button
-              onClick={toggleTheme}
-              className={`p-1.5 rounded-full transition-all ${
-                isDarkMode ? 'bg-slate-800 text-sky-400 shadow-xs' : 'text-slate-400'
+              onClick={!isDarkMode ? toggleTheme : undefined}
+              className={`p-1.5 rounded-full transition-all cursor-pointer ${
+                isDarkMode ? 'bg-[#1e293b] text-slate-100 shadow-sm' : 'text-slate-500 hover:text-slate-900'
               }`}
               title="Dark mode"
               aria-label="Dark mode"
@@ -507,35 +533,35 @@ export default function App() {
             </button>
           </div>
 
-          {/* Customer Login Button (Mobile Accessible < 640px) */}
+          {/* Customer Login Button */}
           <button
             onClick={handleCustomerLogin}
-            className={`text-xs font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border transition-all ${
+            className={`text-xs font-medium px-4 py-2 rounded-full border transition-all whitespace-nowrap cursor-pointer shrink-0 ${
               isDarkMode
-                ? 'border-slate-700/80 hover:bg-slate-800 text-slate-200'
-                : 'border-slate-300 hover:bg-slate-100 text-slate-800'
+                ? 'border-[#1e293b] hover:bg-[#1e293b] text-slate-200'
+                : 'border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 shadow-advertz'
             }`}
           >
-            Customer Login
+            Customer login
           </button>
 
           <button
             onClick={handleOpenAccount}
-            className="hidden sm:inline-flex bg-[#3898EC] hover:bg-[#2b85d6] text-white text-xs font-semibold px-4 py-2 rounded-full transition-all shadow-sm"
+            className="hidden sm:inline-flex bg-slate-900 hover:bg-black text-white text-xs font-medium px-5 py-2 rounded-full transition-all shadow-xs cursor-pointer"
           >
             Open account
           </button>
         </div>
       </nav>
 
-      {/* HERO SECTION (Matching Screenshot 2) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-8 py-12 lg:py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+      {/* HERO SECTION */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-8 py-14 lg:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Hero Content */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3898EC]/10 border border-[#3898EC]/20 text-[#3898EC] font-mono text-xs font-medium tracking-wide">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3898EC]" />
-              <span>FREE STANDBY ACCOUNT · NO MONTHLY FEE</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50/80 border border-blue-200/60 text-blue-600 font-mono text-xs font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+              <span>Free standby account · No monthly fee</span>
             </div>
 
             <h1
@@ -544,7 +570,7 @@ export default function App() {
               }`}
             >
               When your carrier fails, we keep{' '}
-              <span className="text-[#3898EC] underline decoration-[#3898EC]/40 decoration-4 underline-offset-8">
+              <span className="text-blue-600">
                 your brand moving.
               </span>
             </h1>
@@ -557,68 +583,68 @@ export default function App() {
               A pre-approved emergency logistics account that sits quietly in the background — ready the moment your main courier lets you down. Same-day collection, nationwide, until midnight.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-3.5 pt-2">
               <button
                 onClick={handleOpenAccount}
-                className="bg-[#3898EC] hover:bg-[#2b85d6] text-white px-7 py-3 rounded-full text-sm font-bold shadow-lg transition-all flex items-center gap-2 group"
+                className="bg-slate-900 hover:bg-black text-white px-6 py-3 rounded-full text-xs sm:text-sm font-medium transition-all shadow-advertz flex items-center gap-2 cursor-pointer active:scale-[0.99]"
               >
-                <span>Open £0 Standby Account</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                <span>Open £0 standby account</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
 
               <a
                 href={CONTACT_CONFIG.phone.primaryTel}
-                className={`px-6 py-3 rounded-full text-sm font-semibold border transition-all flex items-center gap-2 ${
+                className={`px-5 py-3 rounded-full text-xs sm:text-sm font-medium border transition-all flex items-center gap-2 cursor-pointer ${
                   isDarkMode
-                    ? 'border-slate-700/80 hover:bg-slate-800 text-slate-200'
-                    : 'border-slate-300 hover:bg-slate-100 text-slate-800'
+                    ? 'border-[#1e293b] hover:bg-[#1e293b] text-slate-200'
+                    : 'border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 shadow-advertz'
                 }`}
               >
-                <Phone className="w-4 h-4 text-[#3898EC]" />
-                <span>Call Dispatch ({CONTACT_CONFIG.phone.primary})</span>
+                <Phone className="w-4 h-4 text-blue-600" />
+                <span>Call dispatch ({CONTACT_CONFIG.phone.primary})</span>
               </a>
 
               <button
                 onClick={handleEnterDemoPortal}
-                className={`text-xs font-semibold px-4 py-2 transition-colors underline underline-offset-4 ${
-                  isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                className={`text-xs sm:text-sm font-medium px-3 py-2 transition-colors underline underline-offset-4 cursor-pointer ${
+                  isDarkMode ? 'text-slate-400 hover:text-white' : 'text-blue-600 hover:text-blue-700'
                 }`}
               >
-                Explore Active Customer Portal →
+                Explore active customer portal →
               </button>
             </div>
           </div>
 
-          {/* Right Hero Card (Matching Screenshot 2) */}
+          {/* Right Hero Card */}
           <div className="lg:col-span-5">
             <div
-              className={`rounded-3xl border overflow-hidden shadow-2xl relative transition-all ${
+              className={`rounded-3xl border overflow-hidden transition-all shadow-advertz-lg ${
                 isDarkMode
-                  ? 'bg-[#0b121c] border-[#172334]'
-                  : 'bg-slate-900 border-slate-800 text-white'
+                  ? 'bg-[#111827] border-[#1e293b]'
+                  : 'bg-white border-slate-200/80 text-slate-900'
               }`}
             >
               {/* Top Hub Tag */}
-              <div className="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white font-mono text-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3898EC]" />
-                <span>HUB · MANCHESTER, UK</span>
+              <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#0b0d11]/90 border border-[#1e2229] text-white font-mono text-[11px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#206bc4]" />
+                <span>Hub · Manchester, UK</span>
               </div>
 
               {/* Night Logistics Van Visual */}
-              <div className="relative h-72 sm:h-80 w-full overflow-hidden bg-gradient-to-b from-slate-950 via-[#0a111a] to-[#0d1624]">
+              <div className="relative h-72 sm:h-80 w-full overflow-hidden bg-slate-950">
                 <svg viewBox="0 0 600 400" className="w-full h-full object-cover">
                   <defs>
                     <linearGradient id="bayLight" x1="0%" y1="0%" x2="50%" y2="100%">
-                      <stop offset="0%" stopColor="#ffffff" stopOpacity="0.15" />
-                      <stop offset="100%" stopColor="#3898EC" stopOpacity="0" />
+                      <stop offset="0%" stopColor="#ffffff" stopOpacity="0.12" />
+                      <stop offset="100%" stopColor="#206bc4" stopOpacity="0" />
                     </linearGradient>
                   </defs>
 
-                  <rect x="0" y="0" width="600" height="400" fill="#06090e" />
-                  <rect x="420" y="60" width="160" height="260" fill="#0d141f" stroke="#172334" strokeWidth="2" />
-                  <line x1="420" y1="120" x2="580" y2="120" stroke="#172334" strokeWidth="1" />
-                  <line x1="420" y1="180" x2="580" y2="180" stroke="#172334" strokeWidth="1" />
-                  <line x1="420" y1="240" x2="580" y2="240" stroke="#172334" strokeWidth="1" />
+                  <rect x="0" y="0" width="600" height="400" fill="#0b0d11" />
+                  <rect x="420" y="60" width="160" height="260" fill="#12151b" stroke="#1e2229" strokeWidth="2" />
+                  <line x1="420" y1="120" x2="580" y2="120" stroke="#1e2229" strokeWidth="1" />
+                  <line x1="420" y1="180" x2="580" y2="180" stroke="#1e2229" strokeWidth="1" />
+                  <line x1="420" y1="240" x2="580" y2="240" stroke="#1e2229" strokeWidth="1" />
                   <text x="440" y="100" fill="#334155" fontSize="24" fontFamily="monospace" fontWeight="bold">23</text>
 
                   <polygon points="450,20 200,380 580,380" fill="url(#bayLight)" />
@@ -634,8 +660,8 @@ export default function App() {
                     strokeWidth="3"
                   />
                   <path d="M 120 240 L 175 205 L 230 205 L 220 240 Z" fill="#1e293b" opacity="0.8" />
-                  <ellipse cx="105" cy="265" rx="8" ry="5" fill="#3898EC" opacity="0.9" />
-                  <polygon points="105,265 0,250 0,290" fill="rgba(56, 152, 236, 0.2)" />
+                  <ellipse cx="105" cy="265" rx="8" ry="5" fill="#206bc4" opacity="0.9" />
+                  <polygon points="105,265 0,250 0,290" fill="rgba(32, 107, 196, 0.2)" />
 
                   <circle cx="185" cy="300" r="30" fill="#05070a" stroke="#334155" strokeWidth="4" />
                   <circle cx="185" cy="300" r="14" fill="#1e293b" />
@@ -644,13 +670,13 @@ export default function App() {
 
                   {/* NEO Livery */}
                   <g transform="translate(250, 225)">
-                    <path d="M0 8 L6 3 L9 5 L3 10 Z" fill="#3898EC" />
+                    <path d="M0 8 L6 3 L9 5 L3 10 Z" fill="#206bc4" />
                     <path d="M6 14 L12 9 L15 11 L9 16 Z" fill="#60a5fa" />
-                    <text x="22" y="14" fill="#ffffff" fontSize="16" fontFamily="sans-serif" fontWeight="900" letterSpacing="0.5">
+                    <text x="22" y="14" fill="#ffffff" fontSize="16" fontFamily="sans-serif" fontWeight="700" letterSpacing="0.5">
                       NEO TRANSPORT
                     </text>
-                    <text x="22" y="24" fill="#3898EC" fontSize="7" fontFamily="monospace" letterSpacing="1">
-                      EMERGENCY FREIGHT & RAPID RESPONSE
+                    <text x="22" y="24" fill="#206bc4" fontSize="7" fontFamily="monospace" letterSpacing="1">
+                      EMERGENCY FREIGHT &amp; RAPID RESPONSE
                     </text>
                   </g>
 
@@ -660,35 +686,35 @@ export default function App() {
               </div>
 
               {/* Bottom Card Stats */}
-              <div className="p-6 bg-[#0a111a] border-t border-[#172334]">
-                <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-800/80">
+              <div className="p-6 bg-white dark:bg-[#0b0d11] border-t border-slate-100 dark:border-[#1e293b]">
+                <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-100 dark:border-[#1e293b]">
                   <div>
-                    <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider block">
-                      MONTHLY FEE
+                    <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+                      Monthly fee
                     </span>
-                    <div className="text-xl sm:text-2xl font-extrabold text-white mt-0.5">
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-0.5">
                       £0{' '}
-                      <span className="text-xs font-normal text-slate-400">
+                      <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
                         / forever
                       </span>
                     </div>
                   </div>
 
                   <div>
-                    <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider block">
-                      AVAILABLE UNTIL
+                    <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+                      Available until
                     </span>
-                    <div className="text-xl sm:text-2xl font-extrabold text-white mt-0.5 font-mono">
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-0.5 font-mono">
                       00:00
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 text-xs font-mono">
-                  <span className="text-[#3898EC] font-bold tracking-wider uppercase">
-                    STANDBY ACTIVE
+                <div className="flex items-center justify-between pt-3 text-xs font-mono">
+                  <span className="text-blue-600 font-semibold tracking-wide">
+                    Standby active
                   </span>
-                  <span className="text-slate-400 text-[11px]">
+                  <span className="text-slate-500 dark:text-slate-400 text-[11px]">
                     60-second setup · No commitment
                   </span>
                 </div>
@@ -698,43 +724,43 @@ export default function App() {
         </div>
 
         {/* METRICS STRIP */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-16 border-t border-slate-800/40">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-16 border-t border-slate-200/80 dark:border-[#1e293b]">
           <div>
             <div
-              className={`text-4xl lg:text-5xl font-extrabold ${
+              className={`text-3xl lg:text-4xl font-bold tracking-tight ${
                 isDarkMode ? 'text-white' : 'text-slate-900'
               }`}
             >
               60 min
             </div>
-            <p className="text-xs text-slate-400 mt-1 font-medium">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
               Average emergency collection time nationwide
             </p>
           </div>
 
           <div>
             <div
-              className={`text-4xl lg:text-5xl font-extrabold ${
+              className={`text-3xl lg:text-4xl font-bold tracking-tight ${
                 isDarkMode ? 'text-white' : 'text-slate-900'
               }`}
             >
               98.7%
             </div>
-            <p className="text-xs text-slate-400 mt-1 font-medium">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
               Same-day delivery recovery success rate
             </p>
           </div>
 
           <div>
             <div
-              className={`text-4xl lg:text-5xl font-extrabold ${
+              className={`text-3xl lg:text-4xl font-bold tracking-tight ${
                 isDarkMode ? 'text-white' : 'text-slate-900'
               }`}
             >
               Nationwide
             </div>
-            <p className="text-xs text-slate-400 mt-1 font-medium">
-              UK mainland & European emergency road hubs
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+              UK mainland &amp; European emergency road hubs
             </p>
           </div>
         </div>
@@ -743,72 +769,79 @@ export default function App() {
       {/* HOW STANDBY WORKS SECTION */}
       <section
         id="how-it-works"
-        className={`py-16 border-t ${
-          isDarkMode ? 'border-[#172334] bg-[#080e16]' : 'border-slate-200 bg-slate-50'
+        className={`py-20 border-t transition-colors ${
+          isDarkMode ? 'border-[#1e293b] bg-[#0b0f19]' : 'border-slate-200/80 bg-[#f8fafc]'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="font-mono text-xs uppercase tracking-widest text-[#3898EC] font-semibold">
-              CARRIER INSURANCE
-            </span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-blue-600 bg-blue-50/80 border border-blue-200/60 mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+              <span>Contingency carrier coverage</span>
+            </div>
             <h2
-              className={`text-2xl sm:text-3xl font-extrabold mt-1 tracking-tight ${
+              className={`text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight ${
                 isDarkMode ? 'text-white' : 'text-slate-900'
               }`}
             >
-              Why UK Supply Chains Run on Standby
+              Why UK supply chains run on standby
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-2">
+            <p className="text-xs sm:text-base text-slate-500 dark:text-slate-400 mt-3 leading-relaxed">
               Keep your existing courier. We only step in when they miss a collection, break down, or run out of capacity.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
             <div
-              className={`p-6 rounded-2xl border transition-all ${
-                isDarkMode ? 'bg-[#0b121c] border-[#172334]' : 'bg-white border-slate-200'
+              className={`p-7 rounded-2xl border transition-all ${
+                isDarkMode
+                  ? 'bg-[#111827] border-[#1e293b]'
+                  : 'bg-white border-slate-200/80 shadow-advertz shadow-advertz-hover'
               }`}
             >
-              <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-[#3898EC] flex items-center justify-center font-bold font-mono mb-4">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold font-mono text-xs mb-4">
                 01
               </div>
-              <h3 className="font-bold text-base text-white">
-                Pre-Approved & Dormant
+              <h3 className="font-semibold text-base sm:text-lg text-slate-900 dark:text-white">
+                Pre-approved &amp; dormant
               </h3>
-              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
                 Open a £0 account today. All credit vetting, terms, and billing information are pre-cleared so there are zero delays during an operational crisis.
               </p>
             </div>
 
             <div
-              className={`p-6 rounded-2xl border transition-all ${
-                isDarkMode ? 'bg-[#0b121c] border-[#172334]' : 'bg-white border-slate-200'
+              className={`p-7 rounded-2xl border transition-all ${
+                isDarkMode
+                  ? 'bg-[#111827] border-[#1e293b]'
+                  : 'bg-white border-slate-200/80 shadow-advertz shadow-advertz-hover'
               }`}
             >
-              <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-[#3898EC] flex items-center justify-center font-bold font-mono mb-4">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold font-mono text-xs mb-4">
                 02
               </div>
-              <h3 className="font-bold text-base text-white">
-                Dedicated Recovery Fleet
+              <h3 className="font-semibold text-base sm:text-lg text-slate-900 dark:text-white">
+                Dedicated recovery fleet
               </h3>
-              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
                 Single-drop dedicated vehicles from Small Vans to 7.5t Rigids. No multi-drop co-loading or courier sorting hubs. Direct depot-to-door transit.
               </p>
             </div>
 
             <div
-              className={`p-6 rounded-2xl border transition-all ${
-                isDarkMode ? 'bg-[#0b121c] border-[#172334]' : 'bg-white border-slate-200'
+              className={`p-7 rounded-2xl border transition-all ${
+                isDarkMode
+                  ? 'bg-[#111827] border-[#1e293b]'
+                  : 'bg-white border-slate-200/80 shadow-advertz shadow-advertz-hover'
               }`}
             >
-              <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-[#3898EC] flex items-center justify-center font-bold font-mono mb-4">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold font-mono text-xs mb-4">
                 03
               </div>
-              <h3 className="font-bold text-base text-white">
-                Live GPS & 24/7 Dispatch
+              <h3 className="font-semibold text-base sm:text-lg text-slate-900 dark:text-white">
+                Live GPS &amp; 24/7 dispatch
               </h3>
-              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
                 Live vehicle tracking link generated automatically for your recipient, with immediate phone escalation to our Manchester and Birmingham duty desks.
               </p>
             </div>
@@ -819,8 +852,8 @@ export default function App() {
       {/* #OPEN SECTION: DEDICATED ONBOARDING FORM WITH ALL 11 CONTROLLED FIELDS */}
       <section
         id="open"
-        className={`py-16 border-t px-4 sm:px-8 transition-colors ${
-          isDarkMode ? 'border-[#172334] bg-[#060b11]' : 'border-slate-200 bg-white'
+        className={`py-20 border-t px-4 sm:px-8 transition-colors ${
+          isDarkMode ? 'border-[#1e293b] bg-[#0b0f19]' : 'border-slate-200/80 bg-white'
         }`}
       >
         <div className="max-w-4xl mx-auto">
@@ -833,26 +866,33 @@ export default function App() {
 
       {/* FOOTER */}
       <footer
-        className={`py-12 border-t px-4 sm:px-8 text-xs ${
-          isDarkMode ? 'border-[#172334] bg-[#060b11] text-slate-400' : 'border-slate-200 bg-white text-slate-500'
+        className={`py-14 border-t px-4 sm:px-8 text-xs ${
+          isDarkMode ? 'border-[#1e293b] bg-[#0b0f19] text-slate-400' : 'border-slate-200/80 bg-[#f8fafc] text-slate-500'
         }`}
       >
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-bold uppercase text-white font-sans">
-              NEO TRANSPORT
-            </span>
-            <span>· Emergency Freight Network Ltd · Company No. 12948192</span>
+          <div className="flex items-center gap-3">
+            <img
+              src={
+                isDarkMode
+                  ? '/brand/logos/neo-transport-full-blue-white.svg'
+                  : '/brand/logos/neo-transport-full-blue-navy.svg'
+              }
+              alt="NEO TRANSPORT"
+              className="h-5 w-auto object-contain shrink-0"
+              style={{ aspectRatio: '1310.75 / 191.82' }}
+            />
+            <span className="hidden sm:inline">· Emergency Freight Network Ltd · Company No. 12948192</span>
           </div>
 
           <div className="flex items-center gap-6">
-            <button onClick={handleCustomerLogin} className="hover:text-white">
+            <button onClick={handleCustomerLogin} className="hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
               Customer Login
             </button>
-            <a href={CONTACT_CONFIG.phone.primaryTel} className="hover:text-white font-mono">
+            <a href={CONTACT_CONFIG.phone.primaryTel} className="hover:text-slate-900 dark:hover:text-white font-mono transition-colors">
               {CONTACT_CONFIG.phone.primary}
             </a>
-            <span>Terms & GDP Compliance</span>
+            <span>Terms &amp; GDP Compliance</span>
           </div>
         </div>
       </footer>

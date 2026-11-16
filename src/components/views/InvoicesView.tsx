@@ -10,7 +10,9 @@ interface InvoicesViewProps {
 export const InvoicesView: React.FC<InvoicesViewProps> = ({ isDarkMode, invoices }) => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
-  const cardBg = isDarkMode ? 'bg-[#0b121c] border-[#172334]' : 'bg-white border-slate-200';
+  const cardBg = isDarkMode
+    ? 'bg-[#111827] border-[#1e293b]'
+    : 'bg-white border border-slate-200/80 shadow-advertz';
 
   // Dynamic KPI computations from actual invoice dataset
   const outstandingInvoices = invoices.filter((i) => i.status === 'DUE' || i.status === 'OVERDUE');
@@ -75,134 +77,184 @@ Next Scheduled Statement: 01 Sep 2026`;
       {/* Title & Download Statement */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-4 h-0.5 bg-[#3898EC]" />
-            <span className="font-mono text-xs uppercase tracking-widest text-[#3898EC] font-semibold">
-              BILLING
-            </span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-blue-600 bg-blue-50/80 border border-blue-200/60 mb-2">
+            <span>Standby billing & statements</span>
           </div>
           <h1
-            className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
+            className={`text-2xl sm:text-3xl font-bold tracking-tight ${
               isDarkMode ? 'text-white' : 'text-slate-900'
             }`}
           >
             Invoices
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p
+            className={`text-xs sm:text-sm mt-1 ${
+              isDarkMode ? 'text-slate-400' : 'text-slate-500'
+            }`}
+          >
             Monthly statements and ad-hoc invoices for your standby account.
           </p>
         </div>
 
         <button
           onClick={handleDownloadStatement}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition-all self-start sm:self-auto ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium border transition-colors self-start sm:self-auto cursor-pointer ${
             isDarkMode
-              ? 'border-slate-700/80 hover:bg-slate-800 text-slate-200'
-              : 'border-slate-300 hover:bg-slate-100 text-slate-800'
+              ? 'border-[#1e222b] bg-[#12151b] hover:bg-[#18202c] text-slate-200'
+              : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-advertz'
           }`}
         >
-          <Download className="w-4 h-4 text-[#3898EC]" />
+          <Download className="w-4 h-4 text-blue-600" />
           <span>Download statement</span>
         </button>
       </div>
 
-      {/* 3 KPIs Grid (Dynamic calculations) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className={`p-6 rounded-2xl border ${cardBg}`}>
-          <span className="text-xs text-slate-400 font-medium">Outstanding</span>
+      {/* 3 KPIs Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className={`p-6 sm:p-7 rounded-2xl border transition-all ${cardBg}`}>
+          <span
+            className={`text-xs font-medium ${
+              isDarkMode ? 'text-slate-400' : 'text-slate-500'
+            }`}
+          >
+            Outstanding balance
+          </span>
           <div
-            className={`text-3xl font-extrabold mt-1 font-mono ${
+            className={`text-3xl font-bold tracking-tight mt-1 font-mono tabular-nums ${
               isDarkMode ? 'text-white' : 'text-slate-900'
             }`}
           >
             £{outstandingAmount.toLocaleString()}
           </div>
+          <span className="text-[11px] text-slate-400 mt-1 block">30-day standby credit terms</span>
         </div>
 
-        <div className={`p-6 rounded-2xl border ${cardBg}`}>
-          <span className="text-xs text-slate-400 font-medium">Paid this year</span>
+        <div className={`p-6 sm:p-7 rounded-2xl border transition-all ${cardBg}`}>
+          <span
+            className={`text-xs font-medium ${
+              isDarkMode ? 'text-slate-400' : 'text-slate-500'
+            }`}
+          >
+            Paid this year (YTD)
+          </span>
           <div
-            className={`text-3xl font-extrabold mt-1 font-mono ${
+            className={`text-3xl font-bold tracking-tight mt-1 font-mono tabular-nums ${
               isDarkMode ? 'text-white' : 'text-slate-900'
             }`}
           >
             £{paidYtd.toLocaleString()}
           </div>
+          <span className="text-[11px] text-emerald-600 font-medium mt-1 block">All prior statements cleared</span>
         </div>
 
-        <div className={`p-6 rounded-2xl border ${cardBg}`}>
-          <span className="text-xs text-sky-400 font-medium">Next statement</span>
+        <div className={`p-6 sm:p-7 rounded-2xl border transition-all ${cardBg}`}>
+          <span className="text-xs text-slate-400 font-medium">Next consolidated statement</span>
           <div
-            className={`text-3xl font-extrabold mt-1 font-mono ${
+            className={`text-3xl font-bold tracking-tight mt-1 font-mono ${
               isDarkMode ? 'text-white' : 'text-slate-900'
             }`}
           >
             01 Sep
           </div>
+          <span className="text-[11px] text-slate-400 mt-1 block">Automated monthly delivery</span>
         </div>
       </div>
 
-      {/* Invoice Table Card (Matching Screenshot 6) */}
-      <div className={`p-5 sm:p-6 rounded-2xl border ${cardBg}`}>
+      {/* Invoice Table Card */}
+      <div className={`p-6 sm:p-7 rounded-2xl border ${cardBg}`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr
-                className={`border-b font-mono text-[10px] uppercase tracking-wider ${
-                  isDarkMode ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'
+                className={`border-b text-xs font-semibold ${
+                  isDarkMode ? 'border-[#1e222b] text-slate-400' : 'border-slate-200/80 bg-slate-50/60 text-slate-600'
                 }`}
               >
-                <th className="py-3 px-3">INVOICE</th>
-                <th className="py-3 px-3">DATE</th>
-                <th className="py-3 px-3">PERIOD</th>
-                <th className="py-3 px-3">AMOUNT</th>
-                <th className="py-3 px-3">STATUS</th>
-                <th className="py-3 px-3 text-right">PDF</th>
+                <th className="py-3 px-4">Invoice</th>
+                <th className="py-3 px-4">Date</th>
+                <th className="py-3 px-4">Period</th>
+                <th className="py-3 px-4">Amount</th>
+                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4 text-right">PDF</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/40">
+            <tbody className={`divide-y ${isDarkMode ? 'divide-[#1e222b]' : 'divide-slate-100'}`}>
               {invoices.map((inv) => (
                 <tr
                   key={inv.id}
                   className={`transition-colors ${
-                    isDarkMode ? 'hover:bg-[#0e1622]/60' : 'hover:bg-slate-50'
+                    isDarkMode ? 'hover:bg-[#12151b]' : 'hover:bg-slate-50/80'
                   }`}
                 >
-                  <td className="py-4 px-3 font-mono font-bold text-slate-200">
+                  <td
+                    className={`py-3.5 px-4 font-mono font-medium ${
+                      isDarkMode ? 'text-slate-200' : 'text-slate-900'
+                    }`}
+                  >
                     {inv.reference}
                   </td>
-                  <td className="py-4 px-3 text-slate-400 font-mono">
+                  <td
+                    className={`py-3.5 px-4 font-mono ${
+                      isDarkMode ? 'text-slate-400' : 'text-slate-600'
+                    }`}
+                  >
                     {inv.date}
                   </td>
-                  <td className="py-4 px-3 text-slate-200 font-medium">
+                  <td
+                    className={`py-3.5 px-4 font-medium ${
+                      isDarkMode ? 'text-slate-200' : 'text-slate-800'
+                    }`}
+                  >
                     {inv.period}
                   </td>
-                  <td className="py-4 px-3 font-extrabold text-slate-200 font-mono">
+                  <td
+                    className={`py-3.5 px-4 font-medium font-mono tabular-nums ${
+                      isDarkMode ? 'text-slate-200' : 'text-slate-900'
+                    }`}
+                  >
                     £{inv.amount.toLocaleString()}
                   </td>
-                  <td className="py-4 px-3">
+                  <td className="py-3.5 px-4">
                     {inv.status === 'PAID' && (
-                      <span className="font-mono text-[10px] font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">
-                        PAID
+                      <span
+                        className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${
+                          isDarkMode
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                        }`}
+                      >
+                        Paid
                       </span>
                     )}
                     {inv.status === 'DUE' && (
-                      <span className="font-mono text-[10px] font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 uppercase">
-                        DUE
+                      <span
+                        className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${
+                          isDarkMode
+                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                            : 'bg-blue-50 text-blue-700 border-blue-200/80'
+                        }`}
+                      >
+                        Due
                       </span>
                     )}
                     {inv.status === 'OVERDUE' && (
-                      <span className="font-mono text-[10px] font-semibold tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase">
-                        OVERDUE
+                      <span
+                        className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${
+                          isDarkMode
+                            ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                            : 'bg-amber-50 text-amber-800 border-amber-200/80'
+                        }`}
+                      >
+                        Overdue
                       </span>
                     )}
                   </td>
-                  <td className="py-4 px-3 text-right">
+                  <td className="py-3.5 px-4 text-right">
                     <button
                       onClick={() => handleDownloadInvoice(inv)}
-                      className="inline-flex items-center gap-1.5 text-xs text-[#3898EC] hover:underline font-semibold"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-advertz transition-colors cursor-pointer"
                     >
-                      <Download className="w-3.5 h-3.5" />
+                      <Download className="w-3.5 h-3.5 text-blue-600" />
                       <span>Download</span>
                     </button>
                   </td>
