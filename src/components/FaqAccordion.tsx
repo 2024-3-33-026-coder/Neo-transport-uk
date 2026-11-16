@@ -23,31 +23,31 @@ export const FaqAccordion: React.FC = () => {
             <div className="inline-flex items-center gap-2 mb-3.5">
               <span className="h-1.5 w-1.5 rounded-[2px] bg-[#2563EB]" aria-hidden="true" />
               <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2563EB]">
-                OPERATIONAL FAQ
+                FAQ
               </span>
             </div>
             <h2 id="faq-heading" className="section-h2 text-[#111827] mb-4">
-              Frequently Asked Questions
+              Frequently asked questions
             </h2>
             <p className="text-[16px] leading-[1.65] text-[#4B5563] mb-8">
-              Clear answers on same-day collection SLAs, how our £0 Emergency Standby Account works,
-              European customs coordination, and real-time portal telemetry.
+              Answers on 60-minute pickup times, our £0 standby account, European border paperwork,
+              and live GPS tracking.
             </p>
 
-            {/* 24/7 Dispatch Direct Escalation Card */}
+            {/* 24/7 Dispatch Direct Card */}
             <div className="neo-card rounded-2xl p-6">
               <div className="flex items-center gap-2 mb-3">
                 <span className="h-2 w-2 rounded-full bg-[#10B981] telemetry-dot" aria-hidden="true" />
                 <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.1em] text-[#059669]">
-                  DISPATCH DESK ONLINE • 24/7/365
+                  DISPATCH DESK OPEN 24/7
                 </span>
               </div>
               <h3 className="text-[17px] font-bold text-[#111827] mb-2">
-                Need immediate same-day collection or custom contract rates?
+                Need a collection within 60 minutes or contract rates?
               </h3>
               <p className="text-[13.5px] leading-[1.6] text-[#4B5563] mb-5">
-                Speak directly with a NEO Transport controller in under 3 minutes or book your
-                delivery online.
+                Speak with a NEO Transport controller in under 3 minutes or book your delivery
+                online.
               </p>
               <div className="flex flex-wrap gap-3">
                 <a
@@ -61,7 +61,7 @@ export const FaqAccordion: React.FC = () => {
                   href={BRAND_CONFIG.portalBookingUrl}
                   className="btn-secondary-light inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-[13px] font-semibold"
                 >
-                  <span>Book a Delivery</span>
+                  <span>Book a delivery</span>
                   <ArrowUpRight className="h-3.5 w-3.5 text-[#2563EB]" aria-hidden="true" />
                 </a>
               </div>

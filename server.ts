@@ -42,7 +42,7 @@ Keep the response structured, calm, authoritative, and under 160 words.`;
     if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
       return res.json({
         mode: 'deterministic-sla-protocol',
-        plan: `DISPATCH PROTOCOL VERIFIED • ${origin || 'MANCHESTER'} → ${destination || 'BIRMINGHAM'}\n\n1. VEHICLE ALLOCATION: Dedicated sole-use unit pre-staged for immediate departure (LUTON TAIL-LIFT [NT-25012] for tail-lift/6-pallet loads or 7.5T RIGID [NT-25102] for heavy commercial consignments up to 2,500kg).\n2. COLLECTION & TRANSIT SLA: Nationwide collection within ≤ 60 minutes from booking confirmation. Direct point-to-point transit with zero hub transloading or cargo co-mingling.\n3. TELEMETRY & POD: Real-time GPS tracking link activated upon dispatch; instant digital signature POD uploaded to Customer Portal upon consignee handoff.\n4. IMMEDIATE ACTION: Activate in 60 seconds via https://admin.neotransport.co.uk/ or call 24/7 Dispatch on 0800 246 8135 (Avg. response 3 min).`,
+        plan: `Route: ${origin || 'Manchester'} to ${destination || 'Birmingham'}.\n\n1. Vehicle: Luton box van with 500kg tail-lift, unit NT-25012, up to 6 pallets and 1,000kg, or 7.5-tonne rigid truck, unit NT-25102, up to 10 pallets and 2,500kg.\n2. Timing: Collection within 60 minutes nationwide. Direct drive with no sorting hubs.\n3. Tracking: Live GPS tracking link sent on dispatch. Signed proof of delivery uploaded to the Customer Portal at drop-off.\n4. Booking: Book online at https://admin.neotransport.co.uk/ or call 0800 246 8135.`,
       });
     }
 
@@ -64,18 +64,18 @@ Keep the response structured, calm, authoritative, and under 160 words.`;
             thinkingLevel: ThinkingLevel.HIGH,
           },
           systemInstruction:
-            'You are the NEO Transport 24/7 Mission-Critical Dispatch Architect. Provide concise, authoritative UK/EU same-day logistics and emergency standby recovery plans. Never mention generic template companies.',
+            'You are the NEO Transport 24/7 dispatch controller. Write clear, plain-English UK and EU courier plans with concrete vehicle specs, collection times, and direct routes. Avoid em dashes, parentheses, and jargon.',
         },
       });
 
       return res.json({
         mode: 'gemini-4-argon-high-thinking',
-        plan: response.text || 'Dispatch plan generated. Proceed to Customer Portal at https://admin.neotransport.co.uk/.',
+        plan: response.text || 'Dispatch plan ready. Book online at https://admin.neotransport.co.uk/.',
       });
     } catch (err: any) {
       return res.json({
         mode: 'deterministic-sla-protocol',
-        plan: `DISPATCH PROTOCOL VERIFIED • ${origin || 'MANCHESTER'} → ${destination || 'BIRMINGHAM'}\n\n1. VEHICLE ALLOCATION: Dedicated sole-use unit pre-staged for immediate departure (LUTON TAIL-LIFT [NT-25012] or 7.5T RIGID [NT-25102]).\n2. COLLECTION & TRANSIT SLA: Nationwide collection within ≤ 60 minutes. Direct point-to-point routing with zero hub transloading.\n3. TELEMETRY & POD: Live GPS ETA telemetry and instant digital POD capture in Customer Portal.\n4. IMMEDIATE ACTION: Book now at https://admin.neotransport.co.uk/ or call 24/7 Dispatch on 0800 246 8135 (Avg. response 3 min).`,
+        plan: `Route: ${origin || 'Manchester'} to ${destination || 'Birmingham'}.\n\n1. Vehicle: Luton box van with 500kg tail-lift, unit NT-25012, or 7.5-tonne rigid truck, unit NT-25102.\n2. Timing: Collection within 60 minutes. Direct drive with no sorting hubs.\n3. Tracking: Live GPS map and signed proof of delivery in the Customer Portal.\n4. Booking: Book at https://admin.neotransport.co.uk/ or call 0800 246 8135.`,
       });
     }
   });

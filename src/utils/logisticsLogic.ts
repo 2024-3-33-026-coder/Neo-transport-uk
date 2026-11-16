@@ -117,9 +117,9 @@ export function calculateDispatchEstimate(input: DispatchEstimateInput): Dispatc
 
   const portalBookingHref = `${BRAND_CONFIG.portalUrl}?${params.toString()}`;
 
-  const dispatchSummary = `${originHub.label.replace(' Hub', '')} → ${
+  const dispatchSummary = `${originHub.label.replace(' Hub', '')} to ${
     input.destinationCity
-  } • ${recommendedVehicle.code} • Collection ≤ ${estimatedCollectionMins} min • Direct transit (approx ${estimatedTransitMins} min)`;
+  }. Collection within ${estimatedCollectionMins} mins. Direct drive takes about ${estimatedTransitMins} mins.`;
 
   return {
     recommendedVehicle,

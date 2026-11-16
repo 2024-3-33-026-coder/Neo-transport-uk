@@ -54,11 +54,12 @@ export const ServicesGrid: React.FC = () => {
               </span>
             </div>
             <h2 id="services-heading" className="section-h2 text-[#111827] mb-3">
-              End-to-End UK &amp; European Freight Capabilities
+              UK and European road and air freight
             </h2>
             <p className="text-[16px] leading-[1.65] text-[#4B5563]">
-              From urgent 60-minute same-day courier collections to scheduled multi-drop routes, full
-              truck loads, and cross-border European logistics—all managed through one operational portal.
+              We run 60-minute same-day courier collections, multi-drop routes, full truck loads,
+              two-man deliveries, and European road and air freight. You manage every booking in
+              one portal.
             </p>
           </div>
 
@@ -67,7 +68,7 @@ export const ServicesGrid: React.FC = () => {
               href={BRAND_CONFIG.portalBookingUrl}
               className="btn-primary-black inline-flex h-11 items-center gap-2 rounded-lg px-5 text-[13.5px] font-semibold whitespace-nowrap"
             >
-              <span>Book a Delivery</span>
+              <span>Book a delivery</span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </a>
           </div>
@@ -124,7 +125,7 @@ export const ServicesGrid: React.FC = () => {
                     href={BRAND_CONFIG.portalBookingUrl}
                     className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#111827] hover:text-[#2563EB] w-full justify-between"
                   >
-                    <span>Book or Quote</span>
+                    <span>Book or get a quote</span>
                     <ArrowRight className="h-4 w-4 card-arrow text-[#2563EB]" aria-hidden="true" />
                   </a>
                 </div>

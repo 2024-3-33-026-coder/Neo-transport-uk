@@ -29,7 +29,7 @@ export const PortalPreviewSection: React.FC = () => {
   const [selectedJobId, setSelectedJobId] = useState<string>('NT-25102');
   const [showPlanner, setShowPlanner] = useState<boolean>(false);
   const [scenarioInput, setScenarioInput] = useState<string>(
-    'Primary pallet carrier missed 16:00 collection in Manchester. 6 standard pallets (950kg total) of urgent line-side components needed in Birmingham before 21:00. No forklift at destination.'
+    'Regular pallet carrier missed a 16:00 pickup in Manchester. 6 standard pallets weighing 950kg need to reach Birmingham before 21:00. No forklift at the delivery site.'
   );
   const [plannerLoading, setPlannerLoading] = useState<boolean>(false);
   const [plannerResult, setPlannerResult] = useState<string | null>(null);
@@ -55,7 +55,7 @@ export const PortalPreviewSection: React.FC = () => {
       setPlannerResult(data.plan || GEMINI_LOGISTICS_PULSE_DEFAULT);
     } catch {
       setPlannerResult(
-        'DISPATCH PROTOCOL VERIFIED • MANCHESTER → BIRMINGHAM\n1. Vehicle: LUTON TAIL-LIFT (NT-25012) • 6 Pallets / 1000kg Max + 500kg Hydraulic Tail-Lift.\n2. SLA: Collection ≤ 42 min • Direct transit approx 109 min (ETA ~18:35).\n3. Action: Proceed to Customer Portal or call 0800 246 8135.'
+        'Route: Manchester to Birmingham.\n1. Vehicle: Luton box van with 500kg tail-lift, unit NT-25012, up to 6 pallets and 1,000kg.\n2. Timing: Collection within 42 minutes. Direct drive takes 109 minutes.\n3. Booking: Book in the Customer Portal or call 0800 246 8135.'
       );
     } finally {
       setPlannerLoading(false);
@@ -106,11 +106,12 @@ export const PortalPreviewSection: React.FC = () => {
             </span>
           </div>
           <h2 id="how-it-works-heading" className="section-h2 text-[#111827] mb-3">
-            From Request to Proof of Delivery — Seamless &amp; Transparent
+            Book, track, and get proof of delivery in one place
           </h2>
           <p className="text-[16px] leading-[1.65] text-[#4B5563]">
-            Whether dispatching an urgent same-day courier van or scheduling a multi-vehicle
-            commercial run, every stage is tracked live inside the NEO Transport Customer Portal.
+            Book a single same-day van or schedule a multi-vehicle run in the NEO Transport
+            Customer Portal. You see live vehicle positions and signed delivery receipts for every
+            job.
           </p>
         </ScrollReveal>
 
@@ -130,7 +131,7 @@ export const PortalPreviewSection: React.FC = () => {
                   </div>
 
                   <h3 className="card-h3 text-[#111827] mb-2.5">
-                    {step.stepNumber} / {step.title}
+                    {step.stepNumber}. {step.title}
                   </h3>
 
                   <p className="text-[14.5px] leading-[1.65] text-[#4B5563] mb-5">
@@ -146,7 +147,7 @@ export const PortalPreviewSection: React.FC = () => {
                     href={BRAND_CONFIG.portalUrl}
                     className="font-mono-tech text-[11px] font-semibold text-[#111827] hover:text-[#2563EB]"
                   >
-                    PORTAL →
+                    Open portal
                   </a>
                 </div>
               </div>
@@ -183,14 +184,14 @@ export const PortalPreviewSection: React.FC = () => {
                   className="btn-primary-black inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[12px] font-semibold"
                 >
                   <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>Book a Delivery</span>
+                  <span>Book a delivery</span>
                 </a>
 
                 <a
                   href={BRAND_CONFIG.portalLoginUrl}
                   className="btn-secondary-light inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[12px] font-medium"
                 >
-                  <span>Customer Login</span>
+                  <span>Customer login</span>
                   <ExternalLink className="h-3 w-3 text-[#2563EB]" aria-hidden="true" />
                 </a>
               </div>
@@ -205,10 +206,10 @@ export const PortalPreviewSection: React.FC = () => {
                     OVERVIEW
                   </div>
                   <h3 className="text-[24px] sm:text-[28px] font-bold text-[#111827] tracking-[-0.02em]">
-                    Live Operations Control Room
+                    Operations control room
                   </h3>
                   <p className="text-[13.5px] text-[#4B5563]">
-                    Your account is active and live GPS dispatch telemetry is online 24/7.
+                    Your account is active and live GPS tracking is online 24/7.
                   </p>
                 </div>
 
@@ -218,7 +219,7 @@ export const PortalPreviewSection: React.FC = () => {
                     className="btn-secondary-light inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-[12.5px] font-semibold"
                   >
                     <Headphones className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
-                    <span>DISPATCH 24/7: {BRAND_CONFIG.dispatchPhoneDisplay}</span>
+                    <span>24/7 dispatch: {BRAND_CONFIG.dispatchPhoneDisplay}</span>
                   </a>
                 </div>
               </div>
@@ -231,10 +232,10 @@ export const PortalPreviewSection: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-[15px] font-bold text-[#111827]">
-                      Standby Account Active
+                      Standby account active
                     </div>
                     <div className="text-[12.5px] text-[#4B5563]">
-                      £0 monthly fee · Priority dispatch · Dedicated fleet access
+                      £0 monthly fee, priority dispatch, and dedicated vehicle access
                     </div>
                   </div>
                 </div>
@@ -252,7 +253,7 @@ export const PortalPreviewSection: React.FC = () => {
                 </div>
               </div>
 
-              {/* 4 KPI Telemetry Cards */}
+              {/* 4 KPI Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {PORTAL_KPIS.map((kpi) => (
                   <div
@@ -284,17 +285,17 @@ export const PortalPreviewSection: React.FC = () => {
                 ))}
               </div>
 
-              {/* Bottom 2-Column Split: Today's Jobs (7 cols) & Quick Actions + GEMINI LOGISTICS PULSE (5 cols) */}
+              {/* Bottom 2-Column Split: Today's Jobs (7 cols) & Quick Actions + Route Checker (5 cols) */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Today's Jobs Module */}
                 <div className="lg:col-span-7 rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] p-5 sm:p-6 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2.5">
-                        <h4 className="text-[16px] font-bold text-[#111827]">Today&apos;s Jobs</h4>
+                        <h4 className="text-[16px] font-bold text-[#111827]">Today&apos;s jobs</h4>
                         <span className="inline-flex items-center gap-1.5 font-mono-tech text-[10px] font-semibold uppercase tracking-[0.08em] text-[#059669]">
                           <span className="h-1.5 w-1.5 rounded-full bg-[#10B981] telemetry-dot" aria-hidden="true" />
-                          LIVE GPS STREAM
+                          LIVE GPS
                         </span>
                       </div>
                       <a
@@ -364,26 +365,26 @@ export const PortalPreviewSection: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Selected Job Live Telemetry Strip */}
+                  {/* Selected Job Live Status Strip */}
                   <div className="mt-5 pt-4 border-t border-[#E5E7EB] flex flex-wrap items-center justify-between gap-2 text-[12px]">
                     <div className="font-mono-tech text-[#4B5563]">
-                      ACTIVE MANIFEST:{' '}
-                      <span className="text-[#2563EB] font-semibold">{selectedJob.vehicleCode}</span>{' '}
-                      ({selectedJob.vehicleType}) — {selectedJob.transitNote}
+                      Selected job:{' '}
+                      <span className="text-[#2563EB] font-semibold">{selectedJob.vehicleCode}</span>,{' '}
+                      {selectedJob.vehicleType}, {selectedJob.transitNote}
                     </div>
                     <a
                       href={BRAND_CONFIG.portalTrackingUrl}
                       className="font-mono-tech text-[11px] font-semibold text-[#059669] hover:underline"
                     >
-                      OPEN LIVE GPS MAP →
+                      Open live GPS map
                     </a>
                   </div>
                 </div>
 
-                {/* Quick Actions + GEMINI LOGISTICS PULSE Module */}
+                {/* Quick Actions + Dispatch Route Checker Module */}
                 <div className="lg:col-span-5 rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] p-5 sm:p-6 flex flex-col justify-between">
                   <div>
-                    <h4 className="text-[16px] font-bold text-[#111827] mb-4">Quick Actions</h4>
+                    <h4 className="text-[16px] font-bold text-[#111827] mb-4">Quick actions</h4>
 
                     <div className="space-y-2.5 mb-6">
                       {PORTAL_QUICK_ACTIONS.map((action) => (
@@ -405,12 +406,12 @@ export const PortalPreviewSection: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* GEMINI LOGISTICS PULSE with High-Thinking Dispatch Planner */}
+                  {/* Live Fleet Status & Route Planner */}
                   <div className="pt-4 border-t border-[#E5E7EB]">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <div className="flex items-center gap-1.5 font-mono-tech text-[11px] font-semibold uppercase tracking-[0.1em] text-[#2563EB]">
                         <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                        <span>GEMINI LOGISTICS PULSE</span>
+                        <span>LIVE FLEET STATUS</span>
                       </div>
 
                       <button
@@ -418,7 +419,7 @@ export const PortalPreviewSection: React.FC = () => {
                         onClick={() => setShowPlanner(!showPlanner)}
                         className="font-mono-tech text-[10.5px] text-[#4B5563] hover:text-[#111827] underline cursor-pointer"
                       >
-                        {showPlanner ? 'Close Route Strategist' : 'Test Emergency Route AI →'}
+                        {showPlanner ? 'Close route planner' : 'Check route and vehicle'}
                       </button>
                     </div>
 
@@ -432,7 +433,7 @@ export const PortalPreviewSection: React.FC = () => {
                           htmlFor="gemini-pulse-input"
                           className="block font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#4B5563]"
                         >
-                          Describe Emergency Freight Scenario (High-Thinking Analysis):
+                          Enter pickup, drop-off, pallet count, and deadline
                         </label>
                         <textarea
                           id="gemini-pulse-input"
@@ -449,10 +450,10 @@ export const PortalPreviewSection: React.FC = () => {
                           {plannerLoading ? (
                             <>
                               <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-                              <span>Calculating Recovery Protocol...</span>
+                              <span>Checking vehicle and timing...</span>
                             </>
                           ) : (
-                            <span>Generate Emergency Dispatch Plan</span>
+                            <span>Get dispatch plan</span>
                           )}
                         </button>
 

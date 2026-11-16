@@ -92,14 +92,14 @@ export const Navbar: React.FC = () => {
             href={BRAND_CONFIG.portalUrl}
             className="btn-secondary-light inline-flex h-9 items-center justify-center rounded-lg px-4 text-[13px] font-medium whitespace-nowrap shrink-0"
           >
-            Customer Login
+            Customer login
           </a>
 
           <a
             href={BRAND_CONFIG.portalUrl}
             className="btn-primary-black inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-4 text-[13px] font-semibold whitespace-nowrap shrink-0"
           >
-            <span>Book a Delivery</span>
+            <span>Book a delivery</span>
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </a>
         </div>
@@ -153,13 +153,13 @@ export const Navbar: React.FC = () => {
               href={BRAND_CONFIG.portalUrl}
               className="btn-primary-black flex h-11 flex-1 items-center justify-center rounded-lg px-5 text-sm font-semibold"
             >
-              Book a Delivery
+              Book a delivery
             </a>
             <a
               href={BRAND_CONFIG.portalUrl}
               className="btn-secondary-light flex h-11 flex-1 items-center justify-center rounded-lg px-5 text-sm font-semibold"
             >
-              Customer Login
+              Customer login
             </a>
             <a
               href={BRAND_CONFIG.dispatchPhoneHref}

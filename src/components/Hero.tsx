@@ -33,22 +33,22 @@ export const Hero: React.FC = () => {
             </span>
           </div>
 
-          {/* Centered Large Bold Hero Headline */}
+          {/* Centered Large Bold Hero Headline in sentence case */}
           <h1
             id="hero-heading"
-            className="hero-h1 text-[#111827] max-w-[18ch] mb-6"
+            className="hero-h1 text-[#111827] max-w-[19ch] mb-6"
           >
-            Same-Day Courier &amp; <span className="whitespace-nowrap">End-to-End</span>{' '}
+            Same-day courier and <span className="whitespace-nowrap">end-to-end</span>{' '}
             <span className="hero-gradient-text">
-              Logistics Across the UK &amp; Europe
+              logistics across the UK and Europe
             </span>
           </h1>
 
-          {/* Centered Sub-headline */}
+          {/* Centered Sub-headline without en dashes or fluff */}
           <p className="max-w-[58ch] text-[16.5px] sm:text-[18px] leading-[1.65] text-[#4B5563] mb-9">
-            We&apos;re NEO Transport – your trusted partner for same-day shipping, end-to-end
-            logistics, and dedicated business deliveries across the UK and Europe. Nationwide
-            collection within 60 minutes, tracked live 24/7.
+            NEO Transport handles same-day shipping, dedicated van and truck loads, and business
+            deliveries across the UK and Europe. We collect nationwide within 60 minutes and track
+            every vehicle live 24/7.
           </p>
 
           {/* Centered CTA Buttons */}
@@ -57,7 +57,7 @@ export const Hero: React.FC = () => {
               href={BRAND_CONFIG.portalUrl}
               className="btn-primary-black inline-flex h-12 items-center justify-center gap-2.5 rounded-lg px-6 text-[14.5px] font-semibold whitespace-nowrap"
             >
-              <span>Book a Delivery</span>
+              <span>Book a delivery</span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </a>
 
@@ -67,7 +67,7 @@ export const Hero: React.FC = () => {
               className="btn-secondary-light inline-flex h-12 items-center justify-center gap-2 rounded-lg px-6 text-[14px] font-semibold whitespace-nowrap"
             >
               <Compass className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
-              <span>Explore Services</span>
+              <span>Explore services</span>
             </a>
           </div>
 
@@ -77,7 +77,7 @@ export const Hero: React.FC = () => {
             className="inline-flex items-center gap-2 font-mono-tech text-[12.5px] font-medium text-[#6B7280] hover:text-[#111827] transition-colors"
           >
             <Phone className="h-3.5 w-3.5 text-[#2563EB]" aria-hidden="true" />
-            <span>24/7 Dispatch Desk: {BRAND_CONFIG.dispatchPhoneDisplay}</span>
+            <span>24/7 dispatch desk: {BRAND_CONFIG.dispatchPhoneDisplay}</span>
           </a>
         </ScrollReveal>
 
@@ -332,20 +332,20 @@ export const Hero: React.FC = () => {
                 </svg>
               </div>
 
-              {/* Right 5 Cols: Clean Dispatch Activity & Telemetry Rows */}
+              {/* Right 5 Cols: Clean Dispatch Activity & Status Rows */}
               <div className="lg:col-span-5 p-5 sm:p-6 bg-white flex flex-col justify-between">
                 <div>
                   <div className="font-mono-tech text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[#6B7280] mb-4">
-                    LIVE DISPATCH TELEMETRY
+                    LIVE DISPATCH STATUS
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 mb-5">
                     <div className="rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] p-3.5">
                       <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280] mb-1">
-                        COLLECTION SLA
+                        COLLECTION TARGET
                       </div>
                       <div className="font-mono-tech text-[20px] font-bold text-[#111827]">
-                        &lt; 60 MIN
+                        Under 60 min
                       </div>
                     </div>
                     <div className="rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] p-3.5">
@@ -362,30 +362,30 @@ export const Hero: React.FC = () => {
                     <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                       <span className="flex items-center gap-2 text-[#4B5563]">
                         <MapPin className="h-3.5 w-3.5 text-[#2563EB]" aria-hidden="true" />
-                        <span>Active Dispatch Hub</span>
+                        <span>Active dispatch hub</span>
                       </span>
                       <span className="font-mono-tech font-medium text-[#111827]">
-                        {currentHub.label} (Bay {currentHub.bayNumber})
+                        {currentHub.label}, Bay {currentHub.bayNumber}
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between py-2 border-b border-[#F3F4F6]">
                       <span className="flex items-center gap-2 text-[#4B5563]">
                         <Clock className="h-3.5 w-3.5 text-[#2563EB]" aria-hidden="true" />
-                        <span>Avg Hub Dispatch</span>
+                        <span>Average hub pickup</span>
                       </span>
                       <span className="font-mono-tech font-medium text-[#059669]">
-                        {currentHub.avgCollectionMins} min avg
+                        {currentHub.avgCollectionMins} mins
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between py-2">
                       <span className="flex items-center gap-2 text-[#4B5563]">
                         <CheckCircle2 className="h-3.5 w-3.5 text-[#059669]" aria-hidden="true" />
-                        <span>Transit Protocol</span>
+                        <span>Delivery method</span>
                       </span>
                       <span className="font-mono-tech font-medium text-[#111827]">
-                        Dedicated point-to-point
+                        Direct, one vehicle
                       </span>
                     </div>
                   </div>
@@ -399,7 +399,7 @@ export const Hero: React.FC = () => {
                     href={BRAND_CONFIG.portalBookingUrl}
                     className="font-mono-tech text-[11px] font-semibold text-[#2563EB] hover:underline whitespace-nowrap shrink-0"
                   >
-                    DISPATCH →
+                    Book now
                   </a>
                 </div>
               </div>

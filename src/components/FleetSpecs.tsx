@@ -275,16 +275,16 @@ export const FleetSpecs: React.FC = () => {
           <div className="inline-flex items-center gap-2 mb-3.5">
             <span className="h-1.5 w-1.5 rounded-[2px] bg-[#2563EB]" aria-hidden="true" />
             <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2563EB]">
-              DEDICATED FLEET &amp; PAYLOAD TELEMETRY
+              FLEET DIMENSIONS AND PAYLOADS
             </span>
           </div>
           <h2 id="fleet-heading" className="section-h2 text-[#111827] mb-3">
-            Engineered Fleet Classes From Rapid Courier Vans to 7.5T Rigids
+            Vans and rigid trucks for 1 to 10 pallets
           </h2>
           <p className="text-[16px] leading-[1.65] text-[#4B5563]">
-            Select a vehicle class below to inspect verified load-bed dimensions, Euro/UK pallet
-            capacities, and tail-lift specifications—or use the interactive load matcher to auto-assign
-            the optimal vehicle for your consignment.
+            Select a vehicle below to check load-bed dimensions, pallet counts, and tail-lift
+            options. You can also enter your pallet count and weight in the calculator to match the
+            right vehicle.
           </p>
         </ScrollReveal>
 
@@ -474,11 +474,11 @@ export const FleetSpecs: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <SlidersHorizontal className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
                     <span className="font-mono-tech text-[11.5px] font-semibold uppercase tracking-[0.09em] text-[#111827]">
-                      INSTANT FLEET &amp; SLA CALCULATOR
+                      VEHICLE AND TRANSIT CALCULATOR
                     </span>
                   </div>
                   <span className="font-mono-tech text-[10.5px] font-semibold text-[#059669] uppercase">
-                    LIVE TELEMETRY
+                    INSTANT MATCH
                   </span>
                 </div>
 
@@ -489,7 +489,7 @@ export const FleetSpecs: React.FC = () => {
                       htmlFor="calc-origin-hub"
                       className="block font-mono-tech text-[10.5px] uppercase tracking-[0.08em] text-[#4B5563] mb-1.5"
                     >
-                      Origin Dispatch Hub
+                      Origin hub
                     </label>
                     <select
                       id="calc-origin-hub"
@@ -510,7 +510,7 @@ export const FleetSpecs: React.FC = () => {
                       htmlFor="calc-dest-city"
                       className="block font-mono-tech text-[10.5px] uppercase tracking-[0.08em] text-[#4B5563] mb-1.5"
                     >
-                      Destination Corridor
+                      Destination
                     </label>
                     <select
                       id="calc-dest-city"
@@ -537,10 +537,10 @@ export const FleetSpecs: React.FC = () => {
                       className="flex items-center gap-1.5 font-mono-tech text-[11px] uppercase tracking-[0.08em] text-[#4B5563]"
                     >
                       <Package className="h-3.5 w-3.5 text-[#2563EB]" aria-hidden="true" />
-                      <span>Standard Pallets</span>
+                      <span>Standard pallets</span>
                     </label>
                     <span className="font-mono-tech text-[13px] font-bold text-[#2563EB]">
-                      {palletCount} {palletCount === 1 ? 'Pallet' : 'Pallets'}
+                      {palletCount} {palletCount === 1 ? 'pallet' : 'pallets'}
                     </span>
                   </div>
                   <input
@@ -574,7 +574,7 @@ export const FleetSpecs: React.FC = () => {
                       className="flex items-center gap-1.5 font-mono-tech text-[11px] uppercase tracking-[0.08em] text-[#4B5563]"
                     >
                       <Weight className="h-3.5 w-3.5 text-[#2563EB]" aria-hidden="true" />
-                      <span>Total Payload Weight</span>
+                      <span>Total weight</span>
                     </label>
                     <span className="font-mono-tech text-[13px] font-bold text-[#2563EB]">
                       {weightKg} kg
@@ -633,10 +633,10 @@ export const FleetSpecs: React.FC = () => {
                       <Maximize className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
                       <div>
                         <div className="text-[13.5px] font-semibold text-[#111827]">
-                          Hydraulic Tail-Lift &amp; Pump Truck
+                          Hydraulic tail-lift and pump truck
                         </div>
                         <div className="text-[11.5px] text-[#6B7280]">
-                          Required if collection/delivery site has no forklift
+                          Needed when the pickup or drop-off site has no forklift
                         </div>
                       </div>
                     </div>
@@ -653,14 +653,14 @@ export const FleetSpecs: React.FC = () => {
                 </div>
               </div>
 
-              {/* Matched Vehicle Telemetry Output */}
+              {/* Matched Vehicle Output */}
               <div className="rounded-xl border border-[#E5E7EB] bg-[#FAFAFA] p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-mono-tech text-[10.5px] uppercase tracking-[0.09em] text-[#6B7280]">
-                    RECOMMENDED ALLOCATION
+                    MATCHED VEHICLE
                   </span>
                   <span className="font-mono-tech text-[10.5px] font-semibold text-[#059669]">
-                    COLLECTION ≤ {dispatchEstimate.estimatedCollectionMins} MIN
+                    COLLECTION WITHIN {dispatchEstimate.estimatedCollectionMins} MIN
                   </span>
                 </div>
 

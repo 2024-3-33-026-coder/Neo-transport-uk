@@ -43,15 +43,15 @@ export const IndustriesGrid: React.FC = () => {
             <div className="inline-flex items-center gap-2 mb-3.5">
               <span className="h-1.5 w-1.5 rounded-[2px] bg-[#2563EB]" aria-hidden="true" />
               <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2563EB]">
-                SECTOR EXPERTISE
+                INDUSTRIES WE SERVE
               </span>
             </div>
             <h2 id="industries-heading" className="section-h2 text-[#111827] mb-3">
-              Industry-Tailored Courier Services
+              Courier services by industry
             </h2>
             <p className="text-[16px] leading-[1.65] text-[#4B5563]">
-              Dedicated operational protocols, specialist load restraint, and sector-vetted drivers
-              across six high-consequence UK &amp; European industries.
+              We supply vans, tail-lift box trucks, and two-person crews with the right straps and
+              site paperwork for six industries across the UK and Europe.
             </p>
           </div>
 
@@ -59,7 +59,7 @@ export const IndustriesGrid: React.FC = () => {
             href={BRAND_CONFIG.portalBookingUrl}
             className="inline-flex items-center gap-2 text-[14px] font-semibold text-[#111827] hover:text-[#2563EB] shrink-0 transition-colors"
           >
-            <span>Book Sector Courier Delivery</span>
+            <span>Book a delivery</span>
             <ArrowRight className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
           </a>
         </ScrollReveal>
@@ -95,7 +95,7 @@ export const IndustriesGrid: React.FC = () => {
 
                 <div className="pt-4 border-t border-[#E5E7EB] flex flex-col gap-3">
                   <div className="font-mono-tech text-[11px] text-[#6B7280]">
-                    TYPICAL FREIGHT:{' '}
+                    Common loads:{' '}
                     <span className="text-[#111827] font-medium">{sector.typicalLoads}</span>
                   </div>
 
@@ -103,7 +103,7 @@ export const IndustriesGrid: React.FC = () => {
                     href={BRAND_CONFIG.portalBookingUrl}
                     className="inline-flex items-center justify-between text-[13px] font-semibold text-[#111827] hover:text-[#2563EB]"
                   >
-                    <span>Book {sector.title} Courier</span>
+                    <span>Book {sector.title.toLowerCase()} courier</span>
                     <ArrowRight className="h-4 w-4 card-arrow text-[#2563EB]" aria-hidden="true" />
                   </a>
                 </div>

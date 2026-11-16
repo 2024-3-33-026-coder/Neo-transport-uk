@@ -22,13 +22,12 @@ export const Footer: React.FC = () => {
             </div>
 
             <h2 id="conversion-banner-heading" className="section-h2 text-[#111827] mb-4">
-              Ready to book a dedicated same-day delivery or activate your £0 Standby Account?
+              Book a same-day delivery or open a £0 standby account
             </h2>
 
             <p className="text-[16px] leading-[1.65] text-[#4B5563] max-w-[58ch] mx-auto">
-              Dispatch a dedicated UK or European vehicle within 60 minutes, or pre-approve your
-              business today with zero monthly retainer and instant access to the NEO Transport
-              Customer Portal.
+              Book a dedicated UK or European vehicle for collection within 60 minutes, or open a
+              standby account today with a £0 monthly fee.
             </p>
           </ScrollReveal>
 
@@ -40,38 +39,39 @@ export const Footer: React.FC = () => {
                 <div>
                   <div className="flex items-center justify-between mb-2.5">
                     <span className="font-mono-tech text-[10.5px] font-semibold uppercase tracking-[0.09em] text-[#2563EB]">
-                      PATH A • ONLINE BOOKING &amp; PORTAL
+                      ONLINE BOOKING AND PORTAL
                     </span>
                     <span className="font-mono-tech text-[11px] font-bold text-[#059669]">
-                      &lt; 60 MIN SLA
+                      UNDER 60 MIN PICKUP
                     </span>
                   </div>
                   <p className="text-[13.5px] leading-[1.6] text-[#4B5563] mb-5">
-                    Instant access to live booking, GPS tracking, digital PODs, and priority dispatch.
+                    Book online, track vehicles on a live GPS map, and download signed delivery
+                    receipts.
                   </p>
                 </div>
                 <a
                   href={BRAND_CONFIG.portalBookingUrl}
                   className="btn-primary-black flex h-11 w-full items-center justify-center gap-2 rounded-lg px-5 text-[14px] font-semibold"
                 >
-                  <span>Book a Delivery</span>
+                  <span>Book a delivery</span>
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </a>
               </div>
 
-              {/* Path B: 24/7 Emergency Dispatch */}
+              {/* Path B: 24/7 Dispatch Desk */}
               <div className="rounded-2xl border border-[#E5E7EB] bg-[#FAFAFA] p-6 sm:p-7 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-2.5">
                     <span className="font-mono-tech text-[10.5px] font-semibold uppercase tracking-[0.09em] text-[#6B7280]">
-                      PATH B • 24/7 EMERGENCY DISPATCH DESK
+                      24/7 DISPATCH DESK
                     </span>
                     <span className="font-mono-tech text-[11px] font-semibold text-[#D97706]">
                       {BRAND_CONFIG.dispatchResponseAvg.toUpperCase()}
                     </span>
                   </div>
                   <p className="text-[13.5px] leading-[1.6] text-[#4B5563] mb-5">
-                    Speak directly to a live operations controller for urgent nationwide or European dispatch.
+                    Speak with a controller at any hour to book a UK or European collection.
                   </p>
                 </div>
                 <a
@@ -79,7 +79,7 @@ export const Footer: React.FC = () => {
                   className="btn-secondary-light flex h-11 w-full items-center justify-center gap-2.5 rounded-lg px-5 text-[14px] font-semibold"
                 >
                   <Headphones className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
-                  <span>Call Dispatch ({BRAND_CONFIG.dispatchPhoneDisplay})</span>
+                  <span>Call dispatch on {BRAND_CONFIG.dispatchPhoneDisplay}</span>
                 </a>
               </div>
             </div>
@@ -96,7 +96,7 @@ export const Footer: React.FC = () => {
               <a
                 href="#top"
                 onClick={(e) => scrollToSectionAnchor(e, '#top')}
-                aria-label="NEO Transport — Return to top"
+                aria-label="NEO Transport, return to top"
                 className="inline-flex items-center gap-2.5 mb-3"
               >
                 <NeoBrandMark className="h-6 w-8" />
@@ -110,14 +110,14 @@ export const Footer: React.FC = () => {
               </div>
 
               <p className="text-[14px] leading-[1.65] text-[#4B5563] max-w-sm mb-5">
-                We&apos;re NEO Transport – your trusted partner for same-day shipping, end-to-end
-                logistics, and dedicated business deliveries across the UK and Europe.
+                NEO Transport runs same-day courier collections, dedicated van and truck hire, and
+                direct road freight across the UK and Europe.
               </p>
 
               <div className="inline-flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-[#10B981] telemetry-dot" aria-hidden="true" />
                 <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.09em] text-[#059669]">
-                  LIVE FLEET TRACKING ACTIVE • 24/7/365
+                  LIVE GPS TRACKING ONLINE 24/7
                 </span>
               </div>
             </div>
@@ -125,7 +125,7 @@ export const Footer: React.FC = () => {
             {/* Col 2 (3 cols): Quick Links */}
             <div className="lg:col-span-3">
               <div className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.11em] text-[#111827] mb-4">
-                QUICK LINKS
+                SECTIONS
               </div>
               <ul className="space-y-2.5 text-[13.5px]">
                 <li>
@@ -134,7 +134,7 @@ export const Footer: React.FC = () => {
                     onClick={(e) => scrollToSectionAnchor(e, '#services')}
                     className="text-[#4B5563] hover:text-[#111827] transition-colors"
                   >
-                    Courier &amp; Freight Services
+                    Courier and freight services
                   </a>
                 </li>
                 <li>
@@ -143,7 +143,7 @@ export const Footer: React.FC = () => {
                     onClick={(e) => scrollToSectionAnchor(e, '#fleet')}
                     className="text-[#4B5563] hover:text-[#111827] transition-colors"
                   >
-                    Dedicated Fleet &amp; Payloads
+                    Fleet dimensions and payloads
                   </a>
                 </li>
                 <li>
@@ -152,7 +152,7 @@ export const Footer: React.FC = () => {
                     onClick={(e) => scrollToSectionAnchor(e, '#coverage')}
                     className="text-[#4B5563] hover:text-[#111827] transition-colors"
                   >
-                    UK &amp; EU Coverage Hubs
+                    UK and EU coverage hubs
                   </a>
                 </li>
                 <li>
@@ -161,7 +161,7 @@ export const Footer: React.FC = () => {
                     onClick={(e) => scrollToSectionAnchor(e, '#how-it-works')}
                     className="text-[#4B5563] hover:text-[#111827] transition-colors"
                   >
-                    How It Works &amp; Live Portal
+                    How it works and live portal
                   </a>
                 </li>
                 <li>
@@ -170,7 +170,7 @@ export const Footer: React.FC = () => {
                     onClick={(e) => scrollToSectionAnchor(e, '#industries')}
                     className="text-[#4B5563] hover:text-[#111827] transition-colors"
                   >
-                    Industry Solutions
+                    Industries we serve
                   </a>
                 </li>
                 <li>
@@ -179,7 +179,7 @@ export const Footer: React.FC = () => {
                     onClick={(e) => scrollToSectionAnchor(e, '#faq')}
                     className="text-[#4B5563] hover:text-[#111827] transition-colors"
                   >
-                    Operational FAQ
+                    Frequently asked questions
                   </a>
                 </li>
               </ul>
@@ -188,7 +188,7 @@ export const Footer: React.FC = () => {
             {/* Col 3 (2 cols): Customer Portal & Legal */}
             <div className="lg:col-span-2">
               <div className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.11em] text-[#111827] mb-4">
-                PORTAL &amp; LEGAL
+                PORTAL AND LEGAL
               </div>
               <ul className="space-y-2.5 text-[13.5px]">
                 <li>
@@ -196,7 +196,7 @@ export const Footer: React.FC = () => {
                     href={BRAND_CONFIG.portalBookingUrl}
                     className="inline-flex items-center gap-1 text-[#111827] hover:text-[#2563EB] transition-colors font-semibold"
                   >
-                    <span>Book a Delivery</span>
+                    <span>Book a delivery</span>
                     <ExternalLink className="h-3 w-3 text-[#2563EB]" aria-hidden="true" />
                   </a>
                 </li>
@@ -205,7 +205,7 @@ export const Footer: React.FC = () => {
                     href={BRAND_CONFIG.portalLoginUrl}
                     className="text-[#4B5563] hover:text-[#111827] transition-colors"
                   >
-                    Customer Login
+                    Customer login
                   </a>
                 </li>
                 <li>
@@ -213,7 +213,7 @@ export const Footer: React.FC = () => {
                     href={BRAND_CONFIG.portalTrackingUrl}
                     className="text-[#4B5563] hover:text-[#111827] transition-colors"
                   >
-                    Live Shipment Tracking
+                    Live shipment tracking
                   </a>
                 </li>
                 <li>
@@ -221,7 +221,7 @@ export const Footer: React.FC = () => {
                     href={BRAND_CONFIG.portalUrl}
                     className="text-[#4B5563] hover:text-[#111827] transition-colors"
                   >
-                    Privacy Policy
+                    Privacy policy
                   </a>
                 </li>
                 <li>
@@ -229,7 +229,7 @@ export const Footer: React.FC = () => {
                     href={BRAND_CONFIG.portalUrl}
                     className="text-[#4B5563] hover:text-[#111827] transition-colors"
                   >
-                    Terms &amp; Conditions
+                    Terms and conditions
                   </a>
                 </li>
               </ul>
@@ -258,7 +258,7 @@ export const Footer: React.FC = () => {
                     rel="noreferrer"
                     className="text-[#4B5563] hover:text-[#111827] transition-colors"
                   >
-                    X (Twitter)
+                    X
                   </a>
                 </li>
                 <li>
@@ -284,7 +284,7 @@ export const Footer: React.FC = () => {
               </ul>
 
               <div className="font-mono-tech text-[11px] text-[#6B7280]">
-                24/7 DISPATCH:
+                24/7 DISPATCH
                 <a
                   href={BRAND_CONFIG.dispatchPhoneHref}
                   className="block text-[13px] font-bold text-[#111827] hover:text-[#2563EB] hover:underline mt-0.5"
@@ -300,7 +300,7 @@ export const Footer: React.FC = () => {
             <p>© 2026 NEO Transport. All rights reserved.</p>
             <div className="flex items-center gap-2 font-mono-tech text-[11px]">
               <Shield className="h-3.5 w-3.5 text-[#2563EB]" aria-hidden="true" />
-              <span>UK &amp; EU DEDICATED SAME-DAY LOGISTICS NETWORK</span>
+              <span>UK AND EUROPEAN SAME-DAY COURIER NETWORK</span>
             </div>
           </div>
         </div>
@@ -317,9 +317,10 @@ export const Footer: React.FC = () => {
         </a>
         <a
           href={BRAND_CONFIG.portalBookingUrl}
-          className="btn-primary-black flex h-9 flex-1 items-center justify-center rounded-lg px-3 text-[12px] font-semibold"
+          className="btn-primary-black flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 text-[12px] font-semibold"
         >
-          Book a Delivery →
+          <span>Book a delivery</span>
+          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
         </a>
       </div>
     </>

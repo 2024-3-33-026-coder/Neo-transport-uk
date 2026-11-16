@@ -34,16 +34,16 @@ export const StandbyValueSection: React.FC = () => {
             </span>
           </div>
           <h2 id="standby-heading" className="section-h2 text-[#111827] mb-4">
-            Built on Three Core Operational Pillars
+            How we handle your deliveries
           </h2>
           <p className="text-[16px] sm:text-[17px] leading-[1.65] text-[#4B5563]">
-            Whether you need scheduled business deliveries, rapid same-day shipping, or a £0
-            Emergency Standby Account when a primary carrier lets you down, our team dispatches a
-            dedicated direct vehicle within 60 minutes.
+            Book a one-off same-day van, schedule daily contract runs, or open a £0 standby account
+            for carrier failures. We collect within 60 minutes nationwide and drive straight to your
+            delivery site.
           </p>
         </ScrollReveal>
 
-        {/* 3-Pillar Minimalist Cards with large subtle index numerals (01, 02, 03) */}
+        {/* 3-Card Minimalist Grid with large subtle index numerals (01, 02, 03) */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mb-20">
           {STANDBY_PILLARS.map((pillar, idx) => (
             <ScrollReveal key={pillar.id} delayMs={idx * 75} className="h-full">
@@ -84,10 +84,10 @@ export const StandbyValueSection: React.FC = () => {
 
                   <a
                     href={BRAND_CONFIG.portalBookingUrl}
-                    aria-label={`${pillar.title} — Book a Delivery`}
+                    aria-label={`${pillar.title}, book a delivery`}
                     className="inline-flex items-center gap-1 font-mono-tech text-[11px] font-semibold text-[#111827] hover:text-[#2563EB]"
                   >
-                    <span>DISPATCH</span>
+                    <span>Book now</span>
                     <ArrowRight className="h-3.5 w-3.5 card-arrow text-[#2563EB]" aria-hidden="true" />
                   </a>
                 </div>
@@ -107,32 +107,31 @@ export const StandbyValueSection: React.FC = () => {
                 <div className="inline-flex items-center gap-2 mb-4">
                   <span className="h-2 w-2 rounded-full bg-[#10B981] telemetry-dot" aria-hidden="true" />
                   <span className="font-mono-tech text-[11px] font-semibold uppercase tracking-[0.1em] text-[#059669]">
-                    LIVE FLEET NETWORK • UK &amp; EU
+                    UK AND EUROPEAN NETWORK
                   </span>
                 </div>
 
                 <h3 className="text-[22px] sm:text-[26px] font-bold tracking-[-0.02em] text-[#111827] mb-3">
-                  Nationwide UK Hubs &amp; Direct European Corridors
+                  UK hubs and direct European routes
                 </h3>
 
                 <p className="text-[14.5px] leading-[1.65] text-[#4B5563] mb-6">
-                  Pre-staged vehicles across Manchester, Birmingham, and the London M25 corridor provide
-                  rapid 60-minute same-day collection nationwide, backed by direct door-to-door road
-                  freight across European industrial zones.
+                  Vehicles parked at Manchester, Birmingham, and the London M25 collect nationwide
+                  within 60 minutes and drive door to door across the UK and Europe.
                 </p>
 
                 <div className="space-y-2.5 mb-6">
                   <div className="flex items-center gap-2.5 text-[13.5px] text-[#111827]">
                     <CheckCircle2 className="h-4 w-4 text-[#059669] shrink-0" aria-hidden="true" />
-                    <span>14 dedicated vehicles pre-staged across primary UK motorway hubs</span>
+                    <span>14 vehicles on standby across Manchester, Birmingham, and the M25</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-[13.5px] text-[#111827]">
                     <CheckCircle2 className="h-4 w-4 text-[#059669] shrink-0" aria-hidden="true" />
-                    <span>Zero hub transloading — dedicated vehicle from collection bay to destination</span>
+                    <span>No sorting hubs. One vehicle stays with your load from pickup to drop-off</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-[13.5px] text-[#111827]">
                     <CheckCircle2 className="h-4 w-4 text-[#059669] shrink-0" aria-hidden="true" />
-                    <span>Direct UK ↔ EU cross-border customs &amp; urgent transit coordination</span>
+                    <span>Direct UK to EU road freight with T1 and T2 customs paperwork</span>
                   </div>
                 </div>
 
@@ -140,17 +139,17 @@ export const StandbyValueSection: React.FC = () => {
                   href={BRAND_CONFIG.portalBookingUrl}
                   className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-[#2563EB] hover:underline"
                 >
-                  <span>Book a Same-Day Delivery or Open a £0 Standby Account</span>
+                  <span>Book a delivery or open a £0 standby account</span>
                   <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </a>
               </div>
 
-              {/* Right: Interactive Hub Telemetry Matrix */}
+              {/* Right: Interactive Hub Matrix */}
               <div className="lg:col-span-7">
                 <div className="rounded-xl border border-[#E5E7EB] bg-white p-5 sm:p-6">
                   <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-[#E5E7EB]">
                     <span className="font-mono-tech text-[11px] uppercase tracking-[0.1em] text-[#6B7280]">
-                      LIVE REGIONAL DISPATCH CORRIDORS
+                      REGIONAL DISPATCH HUBS
                     </span>
                     <div className="flex flex-wrap gap-1 rounded-lg bg-[#F3F4F6] p-1" role="tablist" aria-label="Regional Dispatch Hubs">
                       {DISPATCH_HUBS.map((hub) => {
@@ -175,7 +174,7 @@ export const StandbyValueSection: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Selected Hub Telemetry Detail */}
+                  {/* Selected Hub Detail */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                     <div className="rounded-lg border border-[#E5E7EB] bg-[#FAFAFA] p-3.5">
                       <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280] mb-1">
@@ -191,25 +190,25 @@ export const StandbyValueSection: React.FC = () => {
 
                     <div className="rounded-lg border border-[#E5E7EB] bg-[#FAFAFA] p-3.5">
                       <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280] mb-1">
-                        AVG COLLECTION SLA
+                        AVERAGE COLLECTION TIME
                       </div>
                       <div className="font-mono-tech text-[20px] font-bold text-[#111827]">
                         <AnimatedCounter target={activeHub.avgCollectionMins} suffix=" min" />
                       </div>
                       <div className="font-mono-tech text-[11px] text-[#059669]">
-                        Target ≤ 60 min nationwide
+                        Target under 60 min nationwide
                       </div>
                     </div>
 
                     <div className="rounded-lg border border-[#E5E7EB] bg-[#FAFAFA] p-3.5">
                       <div className="font-mono-tech text-[10px] uppercase tracking-[0.08em] text-[#6B7280] mb-1">
-                        STANDBY FLEET READY
+                        VEHICLES READY
                       </div>
                       <div className="font-mono-tech text-[20px] font-bold text-[#111827]">
-                        <AnimatedCounter target={activeHub.activeVehicles} suffix=" Units" />
+                        <AnimatedCounter target={activeHub.activeVehicles} suffix=" units" />
                       </div>
                       <div className="font-mono-tech text-[11px] text-[#4B5563]">
-                        Bay {activeHub.bayNumber} • Immediate Rollout
+                        Bay {activeHub.bayNumber}, ready to depart
                       </div>
                     </div>
                   </div>
@@ -218,7 +217,7 @@ export const StandbyValueSection: React.FC = () => {
                     <div className="flex items-center gap-2 text-[12.5px] text-[#4B5563]">
                       <MapPin className="h-4 w-4 text-[#2563EB] shrink-0" aria-hidden="true" />
                       <span>
-                        Primary Motorway Arteries:{' '}
+                        Main motorways:{' '}
                         <strong className="text-[#111827]">{activeHub.corridor}</strong>
                       </span>
                     </div>
@@ -226,7 +225,7 @@ export const StandbyValueSection: React.FC = () => {
                       href={BRAND_CONFIG.portalBookingUrl}
                       className="font-mono-tech text-[11.5px] font-semibold text-[#2563EB] hover:underline whitespace-nowrap"
                     >
-                      DISPATCH FROM {activeHub.id.toUpperCase()} →
+                      Book from {activeHub.label}
                     </a>
                   </div>
                 </div>
